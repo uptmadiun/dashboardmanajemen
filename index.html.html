@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Executive Monitoring System — UPT Madiun</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- TEMA WAKTU / TEMA WARNA ---------- */
+:root {
+  /* Dark Mode (Default Malam) */
+  --bg-0: #080c14;
+  --bg-1: #0e1524;
+  --bg-2: #131c30;
+  --panel: #111a2c;
+  --panel-border: #223051;
+  --panel-border-soft: #1a2440;
+  --text-hi: #e8edf7;
+  --text-mid: #aab6cc;
+  --text-lo: #6d7995;
+  --amber: #f5a623;
+  --amber-dim: #4a3a17;
+  --teal: #2bd9ab;
+  --teal-dim: #123329;
+  --red: #f0546b;
+  --red-dim: #3a1620;
+  --blue: #4c8dff;
+  --blue-dim: #15263e;
+  --purple: #a855f7;
+  --purple-dim: #2e1065;
+  --grey: #64748b;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+}
+
+[data-theme="light"] {
+  /* Light Mode (Siang Hari) */
+  --bg-0: #f1f5f9;
+  --bg-1: #ffffff;
+  --bg-2: #e2e8f0;
+  --panel: #ffffff;
+  --panel-border: #cbd5e1;
+  --panel-border-soft: #e2e8f0;
+  --text-hi: #0f172a;
+  --text-mid: #334155;
+  --text-lo: #64748b;
+  --amber: #d97706;
+  --amber-dim: #fef3c7;
+  --teal: #0d9488;
+  --teal-dim: #ccfbf1;
+  --red: #e11d48;
+  --red-dim: #ffe4e6;
+  --blue: #2563eb;
+  --blue-dim: #dbeafe;
+  --purple: #9333ea;
+  --purple-dim: #f3e8ff;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--text-hi);font-family:var(--sans);transition:background-color .2s ease, color .2s ease;}
+body{
+  background:
+    radial-gradient(1200px 500px at 15% -10%, rgba(76,141,255,0.08), transparent),
+    radial-gradient(900px 400px at 100% 0%, rgba(245,166,35,0.06), transparent),
+    var(--bg-0);
+  min-height:100vh;
+}
+::selection{background:rgba(76,141,255,0.35);}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:var(--bg-1);}
+::-webkit-scrollbar-thumb{background:var(--panel-border);border-radius:4px;}
+
+.wrap{max-width:1500px;margin:0 auto;padding:24px 20px 60px;}
+
+/* ---------- HEADER ---------- */
+.header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:20px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;
+  border-bottom:1px solid var(--panel-border-soft);
+}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
+h1{font-size:26px;margin:0 0 4px;font-weight:700;letter-spacing:-0.01em;}
+.subtitle{color:var(--text-mid);font-size:13px;max-width:680px;line-height:1.4;}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.header-meta{font-family:var(--mono);font-size:12px;color:var(--text-lo);text-align:right;line-height:1.7;}
+.header-meta b{color:var(--text-hi);font-weight:600;}
+
+.theme-toggle{
+  background:var(--bg-1);border:1px solid var(--panel-border);
+  color:var(--text-hi);font-family:var(--mono);font-size:11px;
+  padding:6px 12px;border-radius:20px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all .15s ease;
+}
+.theme-toggle:hover{border-color:var(--blue);}
+
+/* ---------- NAVIGATION TABS ---------- */
+.tab-navigation{
+  display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;
+  border-bottom:1px solid var(--panel-border-soft);
+}
+.nav-tab{
+  background:var(--bg-1);border:1px solid var(--panel-border-soft);
+  color:var(--text-mid);font-family:var(--mono);font-size:12px;
+  padding:10px 18px;border-radius:8px 8px 0 0;cursor:pointer;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  transition:all .15s ease;
+}
+.nav-tab:hover{background:var(--bg-2);color:var(--text-hi);border-color:var(--panel-border);}
+.nav-tab.active{
+  background:var(--panel);color:var(--teal);border-color:var(--teal);
+  border-bottom-color:var(--panel);box-shadow:0 -4px 12px rgba(43,217,171,0.1);
+  font-weight:600;
+}
+.nav-tab .badge-count{
+  background:rgba(255,255,255,0.08);color:var(--text-hi);padding:2px 7px;
+  border-radius:10px;font-size:10px;
+}
+.nav-tab.active .badge-count{background:var(--teal-dim);color:var(--teal);}
+
+/* ---------- LIVE STATUS ---------- */
+.live-status{
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+  font-family:var(--mono);font-size:12px;color:var(--text-mid);
+}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1.4s ease-in-out infinite;}
+.live-dot.ok{background:var(--teal);animation:none;box-shadow:0 0 6px var(--teal);}
+.live-dot.err{background:var(--red);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.refresh-btn{
+  margin-left:auto;background:transparent;border:1px solid var(--panel-border);color:var(--text-mid);
+  font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:6px;cursor:pointer;
+  transition:all .15s ease;
+}
+.refresh-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ---------- KPI ROW ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:10px;margin-bottom:20px;}
+.kpi{
+  background:var(--panel);border:1px solid var(--panel-border-soft);border-radius:10px;
+  padding:14px;position:relative;overflow:hidden;
+}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kpi-color,var(--blue));}
+.kpi-label{font-size:10.5px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kpi-value{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-0.02em;color:var(--text-hi);}
+.kpi-sub{font-size:10.5px;color:var(--text-mid);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ---------- BUSBAR PROGRESS ---------- */
+.busbar-card{background:var(--panel);border:1px solid var(--panel-border-soft);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+.busbar-title{font-family:var(--mono);font-size:11px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;justify-content:space-between;}
+.busbar-track{height:28px;border-radius:4px;overflow:hidden;display:flex;background:var(--bg-1);border:1px solid var(--panel-border-soft);}
+.busbar-seg{height:100%;border-right:1px solid var(--bg-0);transition:filter .15s ease;}
+.busbar-seg:hover{filter:brightness(1.25);}
+.busbar-legend{display:flex;gap:12px 18px;margin-top:12px;flex-wrap:wrap;max-height:220px;overflow-y:auto;padding-right:4px;}
+.busbar-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-mid);}
+.busbar-legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.busbar-legend-item b{color:var(--text-hi);font-family:var(--mono);}
+
+/* ---------- FILTERS ---------- */
+.filters-card{background:var(--panel);border:1px solid var(--panel-border-soft);border-radius:10px;padding:14px 18px;margin-bottom:20px;}
+.filters-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.filters-head .ft-label{font-family:var(--mono);font-size:11px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.1em;}
+.reset-btn{
+  background:transparent;border:1px solid var(--panel-border);color:var(--text-mid);
+  font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:6px;cursor:pointer;
+  text-transform:uppercase;transition:all .15s ease;
+}
+.reset-btn:hover{border-color:var(--red);color:var(--red);}
+.filters-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:10px;margin-bottom:10px;}
+.field label{display:block;font-size:10px;color:var(--text-lo);margin-bottom:4px;text-transform:uppercase;font-family:var(--mono);}
+.field select, .field input{
+  width:100%;background:var(--bg-1);border:1px solid var(--panel-border-soft);
+  color:var(--text-hi);padding:8px 10px;border-radius:6px;font-size:12.5px;font-family:var(--sans);
+  outline:none;transition:border-color .15s ease;
+}
+.field select:focus, .field input:focus{border-color:var(--blue);}
+.search-row{display:flex;gap:10px;align-items:center;}
+.search-row .field{flex:1;}
+
+.slider-container{display:flex;align-items:center;gap:10px;}
+.slider-container input[type=range]{flex:1;accent-color:var(--teal);}
+.slider-val{font-family:var(--mono);font-size:12px;color:var(--teal);min-width:60px;text-align:right;}
+
+/* ---------- CHARTS ---------- */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(420px, 1fr));gap:14px;margin-bottom:20px;}
+.chart-card{background:var(--panel);border:1px solid var(--panel-border-soft);border-radius:10px;padding:16px 18px;}
+.chart-title{font-family:var(--mono);font-size:11px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+canvas{width:100%;display:block;cursor:pointer;}
+
+/* ---------- TABLE ---------- */
+.table-card{background:var(--panel);border:1px solid var(--panel-border-soft);border-radius:10px;overflow:hidden;}
+.table-head{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--panel-border-soft);}
+.table-head .ft-label{font-family:var(--mono);font-size:11px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.1em;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1000px;}
+thead th{
+  position:sticky;top:0;background:var(--bg-2);
+  text-align:left;padding:10px 12px;font-family:var(--mono);font-size:10.5px;
+  color:var(--text-lo);text-transform:uppercase;letter-spacing:.05em;
+  border-bottom:1px solid var(--panel-border-soft);cursor:pointer;white-space:nowrap;
+  user-select:none;
+}
+thead th:hover{color:var(--text-mid);}
+thead th .arrow{opacity:0.3;margin-left:4px;}
+thead th.active .arrow{opacity:1;color:var(--blue);}
+tbody tr{border-bottom:1px solid var(--panel-border-soft);cursor:pointer;transition:background .1s ease;}
+tbody tr:hover{background:rgba(76,141,255,0.06);}
+tbody td{padding:10px 12px;color:var(--text-mid);vertical-align:top;}
+tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.5px;}
+
+.badge{
+  display:inline-block;padding:3px 8px;border-radius:12px;font-size:10px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;
+}
+.badge-blue{background:var(--blue-dim);color:var(--blue);}
+.badge-amber{background:var(--amber-dim);color:var(--amber);}
+.badge-teal{background:var(--teal-dim);color:var(--teal);}
+.badge-red{background:var(--red-dim);color:var(--red);}
+.badge-purple{background:var(--purple-dim);color:var(--purple);}
+.badge-grey{background:rgba(100,116,139,0.15);color:var(--grey);}
+
+.table-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 18px;border-top:1px solid var(--panel-border-soft);
+  font-family:var(--mono);font-size:12px;color:var(--text-lo);
+}
+.pager{display:flex;gap:6px;align-items:center;}
+.pager button{
+  background:var(--bg-1);border:1px solid var(--panel-border-soft);color:var(--text-mid);
+  width:28px;height:28px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:12px;
+}
+.pager button:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
+.pager button:disabled{opacity:0.3;cursor:default;}
+
+/* ---------- DRAWER ---------- */
+.overlay{position:fixed;inset:0;background:rgba(4,7,14,0.75);backdrop-filter:blur(3px);display:none;align-items:stretch;justify-content:flex-end;z-index:100;}
+.overlay.open{display:flex;}
+.drawer{width:min(480px,92vw);background:var(--bg-1);border-left:1px solid var(--panel-border);padding:24px;overflow-y:auto;}
+.drawer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+.drawer-title{font-size:16px;font-weight:600;line-height:1.4;}
+.drawer-close{background:var(--bg-2);border:1px solid var(--panel-border-soft);color:var(--text-mid);width:30px;height:30px;border-radius:6px;cursor:pointer;}
+.drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.drawer-label{font-family:var(--mono);font-size:10px;color:var(--text-lo);text-transform:uppercase;margin-bottom:4px;}
+.drawer-value{font-size:13px;color:var(--text-hi);line-height:1.4;}
+
+/* ---------- LOADING & ERROR ---------- */
+.loading-state{display:none;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-lo);gap:14px;}
+.loading-state.show{display:flex;}
+.loading-spinner{width:32px;height:32px;border-radius:50%;border:3px solid var(--panel-border-soft);border-top-color:var(--teal);animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-banner{background:var(--red-dim);border:1px solid rgba(240,84,107,0.35);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
+.error-title{color:var(--red);font-weight:600;font-size:14px;margin-bottom:4px;}
+.footer{margin-top:30px;text-align:center;color:var(--text-lo);font-size:11px;font-family:var(--mono);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="eyebrow">Sistem Pemantauan Operational & Asset Health — UPT Madiun</div>
+      <h1 id="tabMainTitle">Executive Integrated Dashboard</h1>
+      <div class="subtitle" id="tabMainSub">Platform Analitik Terpadu Monitoring Anomali Peralatan, Asset Health Index (AHI) MTU, Kerapatan Petir, ABO/CE, dan Proker AO 53.</div>
+    </div>
+    <div class="header-right">
+      <button class="theme-toggle" id="themeToggleBtn">🌙 Mode Malam</button>
+      <div class="header-meta" id="headerMeta"></div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <div class="tab-navigation" id="tabNav">
+    <div class="nav-tab active" data-sheet="db_Anomali">⚡ Dashboard Anomali <span class="badge-count" id="cnt_db_Anomali">0</span></div>
+    <div class="nav-tab" data-sheet="db_MTU_AHI">🩺 Dashboard AHI MTU <span class="badge-count" id="cnt_db_MTU_AHI">0</span></div>
+    <div class="nav-tab" data-sheet="db_Kerapatan_Petir">🌩️ Dashboard Kerapatan Petir <span class="badge-count" id="cnt_db_Kerapatan_Petir">0</span></div>
+    <div class="nav-tab" data-sheet="db_ABO/CE">📋 Dashboard ABO CE <span class="badge-count" id="cnt_db_ABO/CE">0</span></div>
+    <div class="nav-tab" data-sheet="db_Proker AO 53">💼 Dashboard Proker AO 53 <span class="badge-count" id="cnt_db_Proker AO 53">0</span></div>
+    <div class="nav-tab" data-sheet="db_Paket AI 2026">🤖 Dashboard Paket AI 2026 <span class="badge-count" id="cnt_db_Paket AI 2026">0</span></div>
+  </div>
+
+  <!-- LIVE STATUS -->
+  <div class="live-status">
+    <span class="live-dot" id="liveDot"></span>
+    <span id="liveStatusText">Menghubungkan ke Google Sheets…</span>
+    <button id="refreshBtn" class="refresh-btn" title="Muat ulang data">⟳ Refresh Live Data</button>
+  </div>
+
+  <div id="errorBanner" class="error-banner" style="display:none;">
+    <div class="error-title">Gagal Memuat Data</div>
+    <div class="error-desc" id="errorDesc">Periksa koneksi internet atau sharing permission Google Sheets.</div>
+  </div>
+
+  <div id="loadingState" class="loading-state">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">Menarik data dari Google Sheets…</div>
+  </div>
+
+  <!-- DASHBOARD CONTENT AREA -->
+  <div id="dashboardContent" style="display:none;">
+    
+    <!-- KPI ROW -->
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <!-- BUSBAR PROGRESS BAR -->
+    <div class="busbar-card" id="busbarCard">
+      <div class="busbar-title"><span id="busbarTitle">Busbar Diagram Track</span><span id="busbarCount">0 Data</span></div>
+      <div class="busbar-track" id="busbarTrack"></div>
+      <div class="busbar-legend" id="busbarLegend"></div>
+    </div>
+
+    <!-- FILTERS CARD -->
+    <div class="filters-card">
+      <div class="filters-head">
+        <div class="ft-label">Filter Custom Dashboard</div>
+        <button class="reset-btn" id="resetBtn">Reset Filter</button>
+      </div>
+      <div class="filters-grid" id="filtersGrid"></div>
+      <div class="search-row">
+        <div class="field"><label>Pencarian Spesifik / Key Word Search</label><input type="text" id="f-search" placeholder="Ketik kata kunci pencarian..."></div>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="charts-grid" id="chartsGrid"></div>
+
+    <!-- DATA TABLE CARD -->
+    <div class="table-card">
+      <div class="table-head">
+        <div class="ft-label" id="tableCount">Data Detail</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <div id="tableRange"></div>
+        <div class="pager" id="pager"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">UPT Madiun Integrated System · Operational Decision Support System</div>
+</div>
+
+<!-- DRAWER DETAIL -->
+<div class="overlay" id="overlay">
+  <div class="drawer" id="drawer"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // AUTOMATIC DAY / NIGHT THEME ENGINE
+  let userThemeOverride = null;
+
+  function initAutoTheme(){
+    const btn = document.getElementById('themeToggleBtn');
+    const hour = new Date().getHours();
+    const isDayTime = hour >= 6 && hour < 18;
+    const defaultTheme = isDayTime ? 'light' : 'dark';
+    
+    setTheme(userThemeOverride || defaultTheme);
+
+    btn.onclick = () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const target = current === 'light' ? 'dark' : 'light';
+      userThemeOverride = target;
+      setTheme(target);
+      renderDashboard();
+    };
+  }
+
+  function setTheme(mode){
+    document.documentElement.setAttribute('data-theme', mode);
+    const btn = document.getElementById('themeToggleBtn');
+    if(mode === 'light'){
+      btn.innerHTML = '☀️ Mode Siang';
+    } else {
+      btn.innerHTML = '🌙 Mode Malam';
+    }
+  }
+
+  initAutoTheme();
+
+  // KONFIGURASI SUMBER DATA (6 SHEET)
+  const SPREADSHEET_ID = "19CyuyeotdB8nfM0vdpcCNqCOMccDjhCyeBjW3k7Cc50";
+  const SHEETS = ["db_Anomali", "db_MTU_AHI", "db_Kerapatan_Petir", "db_ABO/CE", "db_Proker AO 53", "db_Paket AI 2026"];
+
+  let RAW_SHEET_DATA = {};
+  let currentTab = "db_Anomali";
+  let fetchTimer = null;
+  let currentFetchIndex = 0;
+
+  let tabStates = {
+    db_Anomali: { ultg:'', gi:'', bidang:'', status:'', pelaksana:'', anggaran:'', tahun:'', jenis:'', search:'', sortKey:'', sortDir:'desc', page:1 },
+    db_MTU_AHI: { ultg:'', gi:'', peralatan:'', ahi:'', search:'', sortKey:'', sortDir:'desc', page:1 },
+    db_Kerapatan_Petir: { penghantar:'', tegangan:'', tower:'', month:'', minArus:null, search:'', sortKey:'', sortDir:'desc', page:1 },
+    "db_ABO/CE": { ultg:'', bidang:'', program:'', anomali:'', status:'', search:'', sortKey:'', sortDir:'desc', page:1 },
+    "db_Proker AO 53": { bidang:'', mitigasi:'', statusKontrak:'', sifatPek:'', search:'', sortKey:'', sortDir:'desc', page:1 },
+    "db_Paket AI 2026": { grup:'', proker:'', prosesSkki:'', search:'', sortKey:'', sortDir:'desc', page:1 }
+  };
+
+  function setLiveStatus(mode, text){
+    const dot = document.getElementById('liveDot');
+    dot.className = 'live-dot' + (mode==='ok' ? ' ok' : mode==='err' ? ' err' : '');
+    document.getElementById('liveStatusText').textContent = text;
+  }
+
+  function showLoading(show, text){
+    document.getElementById('loadingState').classList.toggle('show', show);
+    document.getElementById('dashboardContent').style.display = show ? 'none' : '';
+    if(text) document.getElementById('loadingText').textContent = text;
+  }
+
+  function fetchNextSheet(){
+    if(currentFetchIndex >= SHEETS.length){
+      clearTimeout(fetchTimer);
+      document.getElementById('refreshBtn').disabled = false;
+      document.getElementById('errorBanner').style.display = 'none';
+      setLiveStatus('ok', `Terhubung Live · ${SHEETS.length} Sheet sinkron pukul ${new Date().toLocaleTimeString('id-ID')}`);
+      showLoading(false);
+      updateBadgeCounts();
+      renderDashboard();
+      return;
+    }
+
+    const sheetName = SHEETS[currentFetchIndex];
+    setLiveStatus('loading', `Memuat [${currentFetchIndex+1}/${SHEETS.length}]: ${sheetName}...`);
+
+    window.gvizCallback = function(json){
+      try{
+        if(!json || !json.table) throw new Error("Gviz error");
+        const cols = json.table.cols.map(c => (c ? (c.label||c.id||'') : '').trim());
+        const rows = json.table.rows || [];
+
+        const parsedRows = rows.map(r => {
+          let rowObj = {};
+          cols.forEach((colName, idx) => {
+            if(!colName) colName = 'COL_' + idx;
+            const cell = r.c ? r.c[idx] : null;
+            let val = '';
+            if(cell){
+              val = (cell.f !== undefined && cell.f !== null) ? cell.f : cell.v;
+              if(val === undefined || val === null) val = '';
+            }
+            rowObj[colName] = String(val).trim();
+          });
+          return rowObj;
+        }).filter(r => Object.values(r).some(v => v !== ''));
+
+        RAW_SHEET_DATA[sheetName] = { cols, rows: parsedRows };
+        currentFetchIndex++;
+        fetchNextSheet();
+      } catch(e){
+        showError(`Gagal memuat sheet [${sheetName}]: ${e.message}`);
+      }
+    };
+
+    const script = document.createElement('script');
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tq=${encodeURIComponent('select *')}&tqx=out:json;responseHandler:gvizCallback&sheet=${encodeURIComponent(sheetName)}`;
+    script.src = url;
+    script.onerror = () => showError(`Gagal menghubungi server Google Sheets untuk ${sheetName}`);
+    document.body.appendChild(script);
+  }
+
+  function fetchAllLiveData(){
+    currentFetchIndex = 0;
+    RAW_SHEET_DATA = {};
+    document.getElementById('refreshBtn').disabled = true;
+    showLoading(true, "Mengambil data real-time utuh dari Google Sheets...");
+    
+    fetchTimer = setTimeout(()=>{
+      showError("Timeout: Koneksi ke Google Sheets lambat.");
+    }, 15000);
+
+    fetchNextSheet();
+  }
+
+  function showError(msg){
+    clearTimeout(fetchTimer);
+    document.getElementById('errorBanner').style.display = '';
+    document.getElementById('errorDesc').textContent = msg;
+    showLoading(false);
+    setLiveStatus('err', 'Gagal Sinkronisasi');
+    document.getElementById('refreshBtn').disabled = false;
+  }
+
+  function updateBadgeCounts(){
+    SHEETS.forEach(s => {
+      const el = document.getElementById(`cnt_${s}`);
+      if(el && RAW_SHEET_DATA[s]){
+        el.textContent = RAW_SHEET_DATA[s].rows.length.toLocaleString('id-ID');
+      }
+    });
+  }
+
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.sheet;
+      renderDashboard();
+    });
+  });
+
+  function findCol(row, keywords){
+    if(!row) return null;
+    const keys = Object.keys(row);
+    for(let kw of keywords){
+      let hit = keys.find(k => k.toUpperCase().trim() === kw.toUpperCase().trim());
+      if(hit) return hit;
+    }
+    for(let kw of keywords){
+      let hit = keys.find(k => k.toUpperCase().includes(kw.toUpperCase()));
+      if(hit) return hit;
+    }
+    return null;
+  }
+
+  function getColByLetter(cols, letter){
+    const index = letter.toUpperCase().charCodeAt(0) - 65;
+    return cols[index] || null;
+  }
+
+  function uniqVals(rows, colName){
+    if(!colName) return [];
+    return [...new Set(rows.map(r => r[colName]).filter(v => v && v.trim()))].sort((a,b)=>a.localeCompare(b));
+  }
+
+  function parseRupiah(valStr){
+    if(!valStr) return 0;
+    const clean = String(valStr).replace(/[^0-9,-]/g, '').replace(',', '.');
+    return parseFloat(clean) || 0;
+  }
+
+  function formatRupiahShort(val){
+    if(val >= 1e9) return (val / 1e9).toFixed(2) + ' M';
+    if(val >= 1e6) return (val / 1e6).toFixed(1) + ' Jt';
+    return val.toLocaleString('id-ID');
+  }
+
+  function renderDashboard(){
+    const dataObj = RAW_SHEET_DATA[currentTab];
+    if(!dataObj) return;
+
+    document.getElementById('tabMainTitle').textContent = 
+      currentTab === "db_Anomali" ? "Dashboard Anomali Gardu Induk & Transmisi" :
+      currentTab === "db_MTU_AHI" ? "Dashboard Asset Health Index (AHI) MTU" :
+      currentTab === "db_Kerapatan_Petir" ? "Dashboard Kerapatan Sambaran Petir Transmisi" :
+      currentTab === "db_ABO/CE" ? "Dashboard Monitoring ABO & CE" :
+      currentTab === "db_Proker AO 53" ? "Dashboard Program Kerja AO 53" : "Dashboard Paket AI 2026";
+
+    document.getElementById('headerMeta').innerHTML = `
+      <div>Total Data Master: <b>${dataObj.rows.length.toLocaleString('id-ID')}</b> Baris</div>
+      <div>Sheet Active: <b>${currentTab}</b></div>
+    `;
+
+    setupFilters(dataObj);
+    const filteredRows = getFilteredRows(dataObj.rows);
+
+    renderKPIs(filteredRows);
+    renderBusbarTrack(filteredRows);
+    renderCharts(filteredRows);
+
+    let columnsForTable = [...dataObj.cols];
+    if(currentTab === "db_Anomali"){
+      columnsForTable = columnsForTable
+        .filter(c => c.toUpperCase() !== 'FOTO')
+        .map(c => (c.toUpperCase() === 'JENIS' ? 'ANOMALI' : c));
+    }
+
+    renderTable(columnsForTable, filteredRows);
+  }
+
+  function setupFilters(dataObj){
+    const grid = document.getElementById('filtersGrid');
+    const st = tabStates[currentTab];
+    const rows = dataObj.rows;
+
+    let html = '';
+
+    if(currentTab === "db_Anomali"){
+      const colUltg = findCol(rows[0], ['ULTG']);
+      const colGi = findCol(rows[0], ['GI', 'GARDU INDUK']);
+      const colBidang = findCol(rows[0], ['BIDANG']);
+      const colStatus = findCol(rows[0], ['STATUS LKS', 'STATUS']);
+      const colPelaksana = findCol(rows[0], ['PELAKSANA']);
+      const colAnggaran = findCol(rows[0], ['STATUS ANGGARAN', 'ANGGARAN']);
+      const colTahun = findCol(rows[0], ['TAHUN']);
+      const colJenis = findCol(rows[0], ['JENIS', 'ANOMALI']);
+
+      let giPool = rows;
+      if(st.ultg && colUltg) giPool = giPool.filter(r => r[colUltg] === st.ultg);
+
+      html = `
+        <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>GI</label><select id="f_gi"><option value="">Semua GI</option>${uniqVals(giPool, colGi).map(v=>`<option value="${escapeAttr(v)}" ${st.gi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Bidang</label><select id="f_bidang"><option value="">Semua Bidang</option>${uniqVals(rows, colBidang).map(v=>`<option value="${escapeAttr(v)}" ${st.bidang===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status LKS</label><select id="f_status"><option value="">Semua Status</option>${uniqVals(rows, colStatus).map(v=>`<option value="${escapeAttr(v)}" ${st.status===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Pelaksana</label><select id="f_pelaksana"><option value="">Semua Pelaksana</option>${uniqVals(rows, colPelaksana).map(v=>`<option value="${escapeAttr(v)}" ${st.pelaksana===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status Anggaran</label><select id="f_anggaran"><option value="">Semua Status Anggaran</option>${uniqVals(rows, colAnggaran).map(v=>`<option value="${escapeAttr(v)}" ${st.anggaran===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Tahun</label><select id="f_tahun"><option value="">Semua Tahun</option>${uniqVals(rows, colTahun).map(v=>`<option value="${escapeAttr(v)}" ${st.tahun===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Anomali</label><select id="f_jenis"><option value="">Semua Anomali</option>${uniqVals(rows, colJenis).map(v=>`<option value="${escapeAttr(v)}" ${st.jenis===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+      `;
+    } else if(currentTab === "db_MTU_AHI"){
+      const colUltg = findCol(rows[0], ['ULTG']);
+      const colGi = findCol(rows[0], ['GI', 'GARDU INDUK']);
+      const colPeralatan = findCol(rows[0], ['PERALATAN', 'BAY', 'EQUIPMENT']);
+      const colAhi = findCol(rows[0], ['AHI VALIDASI', 'AHI', 'KONDISI', 'HEALTH INDEX']);
+
+      let giPool = rows;
+      if(st.ultg && colUltg) giPool = giPool.filter(r => r[colUltg] === st.ultg);
+
+      html = `
+        <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>GI</label><select id="f_gi"><option value="">Semua GI</option>${uniqVals(giPool, colGi).map(v=>`<option value="${escapeAttr(v)}" ${st.gi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Peralatan</label><select id="f_peralatan"><option value="">Semua Peralatan</option>${uniqVals(rows, colPeralatan).map(v=>`<option value="${escapeAttr(v)}" ${st.peralatan===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>AHI Validasi</label><select id="f_ahi"><option value="">Semua Status AHI</option>${uniqVals(rows, colAhi).map(v=>`<option value="${escapeAttr(v)}" ${st.ahi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+      `;
+    } else if(currentTab === "db_Kerapatan_Petir"){
+      const colPenghantar = findCol(rows[0], ['PENGHANTAR', 'JALUR', 'SUTT']);
+      const colTegangan = findCol(rows[0], ['LEVEL TEGANGAN', 'TEGANGAN', 'KV']);
+      const colTower = findCol(rows[0], ['NAMA TOWER', 'TOWER', 'NO TOWER']);
+      const colMonth = findCol(rows[0], ['MONTH', 'BULAN']);
+      const colArus = findCol(rows[0], ['BESARAN ARUS', 'ARUS', 'KA', 'AMPERE']);
+
+      let minArusData = -100, maxArusData = 200;
+      if(colArus && rows.length > 0){
+        const allArus = rows.map(r => parseFloat((r[colArus]||'').replace(/,/g, '.')) || 0).filter(v => !isNaN(v));
+        if(allArus.length > 0){
+          minArusData = Math.floor(Math.min(...allArus));
+          maxArusData = Math.ceil(Math.max(...allArus));
+        }
+      }
+
+      if(st.minArus === null || st.minArus === undefined){
+        st.minArus = minArusData;
+      }
+
+      html = `
+        <div class="field"><label>Penghantar</label><select id="f_penghantar"><option value="">Semua Penghantar</option>${uniqVals(rows, colPenghantar).map(v=>`<option value="${escapeAttr(v)}" ${st.penghantar===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Level Tegangan</label><select id="f_tegangan"><option value="">Semua Tegangan</option>${uniqVals(rows, colTegangan).map(v=>`<option value="${escapeAttr(v)}" ${st.tegangan===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Nama Tower</label><select id="f_tower"><option value="">Semua Tower</option>${uniqVals(rows, colTower).map(v=>`<option value="${escapeAttr(v)}" ${st.tower===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Bulan (Month)</label><select id="f_month"><option value="">Semua Bulan</option>${uniqVals(rows, colMonth).map(v=>`<option value="${escapeAttr(v)}" ${st.month===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field" style="grid-column: span 2;">
+          <label>Min. Arus Sambaran (kA)</label>
+          <div class="slider-container">
+            <input type="range" id="f_minArus" min="${minArusData}" max="${maxArusData}" step="1" value="${st.minArus}">
+            <span class="slider-val" id="f_minArusVal">${st.minArus} kA</span>
+          </div>
+        </div>
+      `;
+    } else if(currentTab === "db_ABO/CE"){
+      const cols = dataObj.cols;
+      const colUltg = getColByLetter(cols, 'B') || findCol(rows[0], ['ULTG']);
+      const colBidang = getColByLetter(cols, 'O') || findCol(rows[0], ['BIDANG']);
+      const colProgram = findCol(rows[0], ['PROGRAM KERJA', 'PROGRAM', 'PEKERJAAN']);
+      const colAnomali = getColByLetter(cols, 'N') || findCol(rows[0], ['JENIS ANOMALI', 'ANOMALI']);
+      const colStatus = getColByLetter(cols, 'L') || findCol(rows[0], ['STATUS REALISASI', 'REALISASI', 'STATUS']);
+
+      html = `
+        <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Bidang / Kategori</label><select id="f_bidang"><option value="">Semua Bidang</option>${uniqVals(rows, colBidang).map(v=>`<option value="${escapeAttr(v)}" ${st.bidang===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Program Kerja</label><select id="f_program"><option value="">Semua Program</option>${uniqVals(rows, colProgram).map(v=>`<option value="${escapeAttr(v)}" ${st.program===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Jenis Anomali</label><select id="f_anomali"><option value="">Semua Jenis</option>${uniqVals(rows, colAnomali).map(v=>`<option value="${escapeAttr(v)}" ${st.anomali===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status Realisasi</label><select id="f_status"><option value="">Semua Status</option>${uniqVals(rows, colStatus).map(v=>`<option value="${escapeAttr(v)}" ${st.status===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+      `;
+    } else if(currentTab === "db_Proker AO 53"){
+      const colBidang = findCol(rows[0], ['BIDANG']);
+      const colMitigasi = findCol(rows[0], ['PROKER MITIGASI', 'MITIGASI']);
+      const colStatusK = findCol(rows[0], ['STATUS KONTRAK', 'STATUS']);
+      const colSifatP = findCol(rows[0], ['SIFAT PEKERJAAN', 'SIFAT PEK', 'SIFAT']);
+
+      html = `
+        <div class="field"><label>Bidang</label><select id="f_bidang"><option value="">Semua Bidang</option>${uniqVals(rows, colBidang).map(v=>`<option value="${escapeAttr(v)}" ${st.bidang===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Proker Mitigasi</label><select id="f_mitigasi"><option value="">Semua Mitigasi</option>${uniqVals(rows, colMitigasi).map(v=>`<option value="${escapeAttr(v)}" ${st.mitigasi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status Kontrak</label><select id="f_statusKontrak"><option value="">Semua Status Kontrak</option>${uniqVals(rows, colStatusK).map(v=>`<option value="${escapeAttr(v)}" ${st.statusKontrak===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Sifat Pekerjaan</label><select id="f_sifatPek"><option value="">Semua Sifat Pekerjaan</option>${uniqVals(rows, colSifatP).map(v=>`<option value="${escapeAttr(v)}" ${st.sifatPek===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+      `;
+    } else if(currentTab === "db_Paket AI 2026"){
+      const colGrup = findCol(rows[0], ['GRUP', 'GROUP']);
+      const colProker = findCol(rows[0], ['PROKER', 'PROGRAM KERJA', 'PROGRAM']);
+      const colSkki = findCol(rows[0], ['PROSES SKKI', 'SKKI', 'STATUS SKKI']);
+
+      html = `
+        <div class="field"><label>Grup</label><select id="f_grup"><option value="">Semua Grup</option>${uniqVals(rows, colGrup).map(v=>`<option value="${escapeAttr(v)}" ${st.grup===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Proker</label><select id="f_proker"><option value="">Semua Proker</option>${uniqVals(rows, colProker).map(v=>`<option value="${escapeAttr(v)}" ${st.proker===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Proses SKKI</label><select id="f_prosesSkki"><option value="">Semua Proses SKKI</option>${uniqVals(rows, colSkki).map(v=>`<option value="${escapeAttr(v)}" ${st.prosesSkki===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+      `;
+    }
+
+    grid.innerHTML = html;
+
+    grid.querySelectorAll('select').forEach(sel => {
+      sel.addEventListener('change', e => {
+        const key = sel.id.replace('f_', '');
+        st[key] = e.target.value;
+        st.page = 1;
+        renderDashboard();
+      });
+    });
+
+    const rangeInput = document.getElementById('f_minArus');
+    if(rangeInput){
+      rangeInput.addEventListener('input', e => {
+        document.getElementById('f_minArusVal').textContent = e.target.value + ' kA';
+        st.minArus = parseFloat(e.target.value);
+        st.page = 1;
+        renderDashboard();
+      });
+    }
+
+    document.getElementById('f-search').value = st.search;
+    document.getElementById('f-search').oninput = e => {
+      st.search = e.target.value.toLowerCase();
+      st.page = 1;
+      renderDashboard();
+    };
+
+    document.getElementById('resetBtn').onclick = () => {
+      tabStates[currentTab] = { search:'', sortKey:'', sortDir:'desc', page:1, minArus:null };
+      renderDashboard();
+    };
+  }
+
+  function getFilteredRows(rows){
+    const st = tabStates[currentTab];
+    const sample = rows[0];
+    const cols = RAW_SHEET_DATA[currentTab] ? RAW_SHEET_DATA[currentTab].cols : [];
+
+    return rows.filter(r => {
+      if(currentTab === "db_Anomali"){
+        const cU = findCol(sample, ['ULTG']), cG = findCol(sample, ['GI', 'GARDU INDUK']), cB = findCol(sample, ['BIDANG']);
+        const cS = findCol(sample, ['STATUS LKS', 'STATUS']), cP = findCol(sample, ['PELAKSANA']), cA = findCol(sample, ['STATUS ANGGARAN', 'ANGGARAN']);
+        const cT = findCol(sample, ['TAHUN']), cJ = findCol(sample, ['JENIS', 'ANOMALI']);
+
+        if(st.ultg && r[cU] !== st.ultg) return false;
+        if(st.gi && r[cG] !== st.gi) return false;
+        if(st.bidang && r[cB] !== st.bidang) return false;
+        if(st.status && r[cS] !== st.status) return false;
+        if(st.pelaksana && r[cP] !== st.pelaksana) return false;
+        if(st.anggaran && r[cA] !== st.anggaran) return false;
+        if(st.tahun && r[cT] !== st.tahun) return false;
+        if(st.jenis && r[cJ] !== st.jenis) return false;
+      } else if(currentTab === "db_MTU_AHI"){
+        const cU = findCol(sample, ['ULTG']), cG = findCol(sample, ['GI', 'GARDU INDUK']);
+        const cP = findCol(sample, ['PERALATAN', 'BAY', 'EQUIPMENT']), cA = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
+
+        if(st.ultg && r[cU] !== st.ultg) return false;
+        if(st.gi && r[cG] !== st.gi) return false;
+        if(st.peralatan && r[cP] !== st.peralatan) return false;
+        if(st.ahi && r[cA] !== st.ahi) return false;
+      } else if(currentTab === "db_Kerapatan_Petir"){
+        const cP = findCol(sample, ['PENGHANTAR', 'JALUR', 'SUTT']), cT = findCol(sample, ['LEVEL TEGANGAN', 'TEGANGAN', 'KV']);
+        const cTw = findCol(sample, ['NAMA TOWER', 'TOWER']), cM = findCol(sample, ['MONTH', 'BULAN']);
+        const cArus = findCol(sample, ['BESARAN ARUS', 'ARUS', 'KA', 'AMPERE']);
+
+        if(st.penghantar && r[cP] !== st.penghantar) return false;
+        if(st.tegangan && r[cT] !== st.tegangan) return false;
+        if(st.tower && r[cTw] !== st.tower) return false;
+        if(st.month && r[cM] !== st.month) return false;
+        if(st.minArus !== null && cArus){
+          const valArus = parseFloat((r[cArus]||'').replace(/,/g,'.')) || 0;
+          if(valArus < st.minArus) return false;
+        }
+      } else if(currentTab === "db_ABO/CE"){
+        const cU = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
+        const cB = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+        const cP = findCol(sample, ['PROGRAM KERJA', 'PROGRAM']);
+        const cA = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI']);
+        const cS = getColByLetter(cols, 'L') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
+
+        if(st.ultg && r[cU] !== st.ultg) return false;
+        if(st.bidang && r[cB] !== st.bidang) return false;
+        if(st.program && r[cP] !== st.program) return false;
+        if(st.anomali && r[cA] !== st.anomali) return false;
+        if(st.status && r[cS] !== st.status) return false;
+      } else if(currentTab === "db_Proker AO 53"){
+        const cB = findCol(sample, ['BIDANG']);
+        const cM = findCol(sample, ['PROKER MITIGASI', 'MITIGASI']);
+        const cSK = findCol(sample, ['STATUS KONTRAK', 'STATUS']);
+        const cSP = findCol(sample, ['SIFAT PEKERJAAN', 'SIFAT PEK', 'SIFAT']);
+
+        if(st.bidang && r[cB] !== st.bidang) return false;
+        if(st.mitigasi && r[cM] !== st.mitigasi) return false;
+        if(st.statusKontrak && r[cSK] !== st.statusKontrak) return false;
+        if(st.sifatPek && r[cSP] !== st.sifatPek) return false;
+      } else if(currentTab === "db_Paket AI 2026"){
+        const cG = findCol(sample, ['GRUP', 'GROUP']);
+        const cP = findCol(sample, ['PROKER', 'PROGRAM KERJA']);
+        const cS = findCol(sample, ['PROSES SKKI', 'SKKI']);
+
+        if(st.grup && r[cG] !== st.grup) return false;
+        if(st.proker && r[cP] !== st.proker) return false;
+        if(st.prosesSkki && r[cS] !== st.prosesSkki) return false;
+      }
+
+      if(st.search){
+        const text = Object.values(r).join(' ').toLowerCase();
+        if(!text.includes(st.search)) return false;
+      }
+
+      return true;
+    });
+  }
+
+  function renderKPIs(rows){
+    const container = document.getElementById('kpiRow');
+    const total = rows.length;
+    const sample = rows[0];
+    const cols = RAW_SHEET_DATA[currentTab] ? RAW_SHEET_DATA[currentTab].cols : [];
+    let kpis = [];
+
+    if(currentTab === "db_Anomali"){
+      const cStatus = findCol(sample, ['STATUS LKS', 'STATUS']);
+      const cAnggaran = findCol(sample, ['STATUS ANGGARAN', 'ANGGARAN']);
+
+      const baru = rows.filter(r => (r[cStatus]||'').toUpperCase().includes('BARU')).length;
+      const proses = rows.filter(r => (r[cStatus]||'').toUpperCase().includes('PROSES')).length;
+      const selesai = rows.filter(r => (r[cStatus]||'').toUpperCase().includes('SELESAI')).length;
+      const perluAnggaran = rows.filter(r => (r[cAnggaran]||'').toUpperCase().includes('PERLU')).length;
+
+      kpis = [
+        {label: 'Total Anomali', value: total, sub: 'Total Temuan LKS', color: 'var(--blue)'},
+        {label: 'Baru', value: baru, sub: 'Menunggu Verifikasi', color: 'var(--blue)'},
+        {label: 'Dalam Proses', value: proses, sub: 'Penanganan Lapangan', color: 'var(--amber)'},
+        {label: 'Selesai', value: selesai, sub: 'Sudah Ditangani', color: 'var(--teal)'},
+        {label: 'Perlu Anggaran', value: perluAnggaran, sub: 'Butuh Alokasi RAB', color: 'var(--red)'}
+      ];
+    } else if(currentTab === "db_MTU_AHI"){
+      const cAhi = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
+      const countAhi = val => rows.filter(r => (r[cAhi]||'').toUpperCase().includes(val.toUpperCase())).length;
+
+      kpis = [
+        {label: 'Total AHI', value: total, sub: 'Unit MTU Diagnosa', color: 'var(--blue)'},
+        {label: 'Kritikal', value: countAhi('Kritikal') + countAhi('Critical'), sub: 'Perlu Tinjut Urgent', color: 'var(--red)'},
+        {label: 'Poor', value: countAhi('Poor') + countAhi('Buruk'), sub: 'Kondisi Buruk', color: 'var(--amber)'},
+        {label: 'Fair', value: countAhi('Fair') + countAhi('Cukup'), sub: 'Kondisi Sedang', color: 'var(--amber)'},
+        {label: 'Good', value: countAhi('Good') + countAhi('Baik'), sub: 'Kondisi Normal', color: 'var(--teal)'},
+        {label: 'Very Good', value: countAhi('Very Good') + countAhi('Sangat Baik'), sub: 'Kondisi Optimal', color: 'var(--teal)'}
+      ];
+    } else if(currentTab === "db_Kerapatan_Petir"){
+      const cArus = findCol(sample, ['BESARAN ARUS', 'ARUS', 'KA']);
+      const cPenghantar = findCol(sample, ['PENGHANTAR', 'JALUR']);
+
+      let maxArus = 0;
+      if(cArus){
+        maxArus = Math.max(...rows.map(r => parseFloat((r[cArus]||'0').replace(/[^0-9.-]/g,''))||0), 0);
+      }
+      const totalPenghantar = uniqVals(rows, cPenghantar).length;
+
+      kpis = [
+        {label: 'Total Sambaran', value: total, sub: 'Rekaman Strike', color: 'var(--blue)'},
+        {label: 'Penghantar Terpengaruh', value: totalPenghantar, sub: 'Jalur Transmisi', color: 'var(--purple)'},
+        {label: 'Max Arus Sambaran', value: maxArus.toFixed(1) + ' kA', sub: 'Puncak Intensitas', color: 'var(--red)'},
+        {label: 'Rata-rata Sambaran', value: (total / (totalPenghantar||1)).toFixed(1), sub: 'Strike / Penghantar', color: 'var(--amber)'}
+      ];
+    } else if(currentTab === "db_ABO/CE"){
+      const cJenisAnomali = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI']);
+      const cBidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+
+      const totalABO = rows.filter(r => (r[cJenisAnomali]||'').toUpperCase().includes('ABO')).length;
+      const totalCE = rows.filter(r => (r[cJenisAnomali]||'').toUpperCase().includes('CE')).length;
+
+      const totalJaringan = rows.filter(r => (r[cBidang]||'').toUpperCase().includes('JARINGAN')).length;
+      const totalGI = rows.filter(r => (r[cBidang]||'').toUpperCase().includes('GARDU INDUK') || (r[cBidang]||'').toUpperCase().includes('GI')).length;
+      const totalProteksi = rows.filter(r => (r[cBidang]||'').toUpperCase().includes('PROTEKSI')).length;
+
+      kpis = [
+        {label: 'Total Item ABO/CE', value: total, sub: 'Total Usulan Program', color: 'var(--blue)'},
+        {label: 'Total ABO', value: totalABO, sub: 'Anomali Breakdown Option', color: 'var(--purple)'},
+        {label: 'Total CE', value: totalCE, sub: 'Corrective Engineering', color: 'var(--amber)'},
+        {label: 'Bidang Jaringan', value: totalJaringan, sub: 'Anomali Jaringan', color: 'var(--blue)'},
+        {label: 'Bidang Gardu Induk', value: totalGI, sub: 'Anomali GI', color: 'var(--teal)'},
+        {label: 'Bidang Proteksi', value: totalProteksi, sub: 'Anomali Proteksi', color: 'var(--red)'}
+      ];
+    } else if(currentTab === "db_Proker AO 53"){
+      const cBidang = findCol(sample, ['BIDANG']);
+      const cntBd = key => rows.filter(r => (r[cBidang]||'').toUpperCase().includes(key.toUpperCase())).length;
+
+      kpis = [
+        {label: 'Total Proker', value: total, sub: 'Program Kerja AO 53', color: 'var(--blue)'},
+        {label: 'GI', value: cntBd('GI') + cntBd('GARDU INDUK'), sub: 'Gardu Induk', color: 'var(--teal)'},
+        {label: 'Jaringan', value: cntBd('JARINGAN'), sub: 'Transmisi / SUTT', color: 'var(--blue)'},
+        {label: 'Proteksi', value: cntBd('PROTEKSI'), sub: 'Sistem Proteksi', color: 'var(--purple)'},
+        {label: 'K3Kam.', value: cntBd('K3') + cntBd('KAM'), sub: 'K3 & Keamanan', color: 'var(--amber)'},
+        {label: 'K3Lingk.', value: cntBd('LINGK'), sub: 'Lingkungan', color: 'var(--teal)'},
+        {label: 'Kons', value: cntBd('KONS') + cntBd('KONSTRUKSI'), sub: 'Pekerjaan Kons', color: 'var(--amber)'},
+        {label: 'PDKB', value: cntBd('PDKB'), sub: 'Tim PDKB', color: 'var(--red)'},
+        {label: 'Umum', value: cntBd('UMUM'), sub: 'Sekretariat/Umum', color: 'var(--grey)'}
+      ];
+    } else if(currentTab === "db_Paket AI 2026"){
+      const cGrup = findCol(sample, ['GRUP', 'GROUP']);
+      const cntGrup = name => rows.filter(r => (r[cGrup]||'').toUpperCase().includes(name.toUpperCase())).length;
+
+      kpis = [
+        {label: 'Total Proker', value: total, sub: 'Paket AI 2026', color: 'var(--blue)'},
+        {label: 'Keandalan Peralatan Primer', value: cntGrup('KEANDALAN PERALATAN PRIMER'), sub: 'Grup Primer', color: 'var(--teal)'},
+        {label: 'MTU P0', value: cntGrup('MTU P0'), sub: 'Grup MTU P0', color: 'var(--amber)'},
+        {label: 'Keandalan Sistem Sekunder GI', value: cntGrup('KEANDALAN SISTEM SEKUNDER GARDU INDUK') + cntGrup('SEKUNDER'), sub: 'Grup Sekunder GI', color: 'var(--purple)'},
+        {label: 'Keandalan Transmisi', value: cntGrup('KEANDALAN TRANSMISI'), sub: 'Grup Transmisi', color: 'var(--blue)'},
+        {label: 'Sarana Pendukung', value: cntGrup('SARANA PENDUKUNG'), sub: 'Grup Sarana', color: 'var(--grey)'}
+      ];
+    }
+
+    container.innerHTML = kpis.map(k=>`
+      <div class="kpi" style="--kpi-color:${k.color}">
+        <div class="kpi-label">${escapeHtml(k.label)}</div>
+        <div class="kpi-value">${typeof k.value==='number'? k.value.toLocaleString('id-ID') : escapeHtml(k.value)}</div>
+        <div class="kpi-sub">${escapeHtml(k.sub)}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderBusbarTrack(rows){
+    const track = document.getElementById('busbarTrack');
+    const legend = document.getElementById('busbarLegend');
+    document.getElementById('busbarCount').textContent = `${rows.length.toLocaleString('id-ID')} Items`;
+
+    const sample = rows[0];
+    const cols = RAW_SHEET_DATA[currentTab] ? RAW_SHEET_DATA[currentTab].cols : [];
+    let keyCol = null;
+
+    if(currentTab === "db_Anomali") keyCol = findCol(sample, ['STATUS LKS', 'STATUS']);
+    else if(currentTab === "db_MTU_AHI") keyCol = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
+    else if(currentTab === "db_Kerapatan_Petir") keyCol = findCol(sample, ['PENGHANTAR', 'JALUR']);
+    else if(currentTab === "db_ABO/CE") keyCol = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+    else if(currentTab === "db_Proker AO 53") keyCol = findCol(sample, ['BIDANG']);
+    else if(currentTab === "db_Paket AI 2026") keyCol = findCol(sample, ['GRUP', 'GROUP']);
+
+    if(!keyCol){
+      document.getElementById('busbarCard').style.display = 'none';
+      return;
+    }
+    document.getElementById('busbarCard').style.display = '';
+
+    const palette = ['#4c8dff', '#2bd9ab', '#f5a623', '#f0546b', '#a855f7', '#06b6d4', '#ec4899', '#84cc16', '#eab308', '#6366f1', '#64748b'];
+
+    if(currentTab === "db_Proker AO 53" || currentTab === "db_Paket AI 2026"){
+      document.getElementById('busbarTitle').textContent = `Busbar Diagram Track — Proporsi Nilai Rupiah (Nilai Pagu) [${keyCol}]`;
+      const cNilai = findCol(sample, ['NILAI PAGU', 'NILAI KONTRAK', 'NILAI', 'ANGGARAN', 'PAGU']);
+
+      const rupiahMap = {};
+      let grandTotalRupiah = 0;
+
+      rows.forEach(r => {
+        const bd = r[keyCol] || 'Unspecified';
+        const Rp = parseRupiah(r[cNilai]);
+        rupiahMap[bd] = (rupiahMap[bd] || 0) + Rp;
+        grandTotalRupiah += Rp;
+      });
+
+      const totalCalc = grandTotalRupiah || 1;
+      let sortedEntries = Object.entries(rupiahMap).sort((a,b)=>b[1]-a[1]);
+
+      let segHtml = '', legHtml = '';
+      sortedEntries.forEach(([st, RpVal], idx) => {
+        const pct = (RpVal / totalCalc * 100);
+        const color = palette[idx % palette.length];
+        segHtml += `<div class="busbar-seg" style="width:${pct}%;background:${color}" title="${escapeAttr(st)}: Rp ${RpVal.toLocaleString('id-ID')} (${pct.toFixed(1)}%)"></div>`;
+        legHtml += `<div class="busbar-legend-item"><span class="busbar-legend-dot" style="background:${color}"></span>${escapeHtml(st)} <b>Rp ${formatRupiahShort(RpVal)}</b> (${pct.toFixed(1)}%)</div>`;
+      });
+
+      track.innerHTML = segHtml;
+      legend.innerHTML = legHtml;
+
+    } else {
+      document.getElementById('busbarTitle').textContent = `Busbar Visualizer Track — Proporsi [${keyCol}]`;
+
+      const counts = {};
+      rows.forEach(r => {
+        const v = r[keyCol] || 'Unspecified';
+        counts[v] = (counts[v]||0) + 1;
+      });
+
+      const total = rows.length || 1;
+      let sortedEntries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+      
+      let displayEntries = sortedEntries;
+      if(sortedEntries.length > 12){
+        const topEntries = sortedEntries.slice(0, 11);
+        const otherCount = sortedEntries.slice(11).reduce((sum, item) => sum + item[1], 0);
+        displayEntries = [...topEntries, ['Lain-Lain (' + (sortedEntries.length - 11) + ' Item)', otherCount]];
+      }
+
+      let segHtml = '', legHtml = '';
+      displayEntries.forEach(([st, cnt], idx) => {
+        const pct = (cnt / total * 100);
+        const color = palette[idx % palette.length];
+        segHtml += `<div class="busbar-seg" style="width:${pct}%;background:${color}" title="${escapeAttr(st)}: ${cnt.toLocaleString('id-ID')} (${pct.toFixed(1)}%)"></div>`;
+        legHtml += `<div class="busbar-legend-item"><span class="busbar-legend-dot" style="background:${color}"></span>${escapeHtml(st)} <b>${cnt.toLocaleString('id-ID')}</b></div>`;
+      });
+
+      track.innerHTML = segHtml;
+      legend.innerHTML = legHtml;
+    }
+  }
+
+  function renderCharts(rows){
+    const container = document.getElementById('chartsGrid');
+    const sample = rows[0];
+    if(!sample || rows.length === 0){ container.innerHTML = ''; return; }
+
+    if(currentTab === "db_Anomali"){
+      container.innerHTML = `
+        <div class="chart-card"><div class="chart-title"><span>Top 10 GI — Jumlah Anomali</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Sebaran Anomali per Bidang</span></div><canvas id="c2" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Tren Temuan per Bulan</span></div><canvas id="c3" height="200"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Distribusi Pelaksana</span></div><canvas id="c4" height="200"></canvas></div>
+      `;
+
+      const cGi = findCol(sample, ['GI', 'GARDU INDUK']);
+      const cBidang = findCol(sample, ['BIDANG']);
+      const cTgl = findCol(sample, ['TANGGAL', 'DATE']);
+      const cPelaksana = findCol(sample, ['PELAKSANA']);
+
+      const giCounts = {}; rows.forEach(r => { if(r[cGi]) giCounts[r[cGi]] = (giCounts[r[cGi]]||0)+1; });
+      const giArr = Object.entries(giCounts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label: label.replace(/^GI\s*/i,''), value}));
+      drawBar('c1', giArr, {horizontal: true, color: '#4c8dff', unit: 'Anomali'});
+
+      const bdCounts = {}; rows.forEach(r => { if(r[cBidang]) bdCounts[r[cBidang]] = (bdCounts[r[cBidang]]||0)+1; });
+      const bdArr = Object.entries(bdCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c2', bdArr, {horizontal: false, color: '#f5a623', unit: 'Anomali'});
+
+      const trMap = {}; rows.forEach(r => {
+        const d = r[cTgl];
+        if(d){
+          const m = String(d).match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);
+          if(m){ const k = m[3] + '-' + String(m[2]).padStart(2,'0'); trMap[k] = (trMap[k]||0)+1; }
+        }
+      });
+      const trArr = Object.keys(trMap).sort().slice(-10).map(k => ({label: k, value: trMap[k]}));
+      drawBar('c3', trArr, {horizontal: false, color: '#2bd9ab', unit: 'Temuan'});
+
+      const plCounts = {}; rows.forEach(r => { if(r[cPelaksana]) plCounts[r[cPelaksana]] = (plCounts[r[cPelaksana]]||0)+1; });
+      const plArr = Object.entries(plCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c4', plArr, {horizontal: true, color: '#a855f7', unit: 'Item'});
+
+    } else if(currentTab === "db_MTU_AHI"){
+      container.innerHTML = `
+        <div class="chart-card"><div class="chart-title"><span>Top 10 GI — AHI Kritikal</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Rank AHI ULTG</span></div><canvas id="c2" height="220"></canvas></div>
+        <div class="chart-card" style="grid-column: span 2;"><div class="chart-title"><span>Sebaran AHI Kritikal per Jenis Peralatan</span></div><canvas id="c3" height="200"></canvas></div>
+      `;
+
+      const cGi = findCol(sample, ['GI', 'GARDU INDUK']);
+      const cUltg = findCol(sample, ['ULTG']);
+      const cAhi = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
+      const cPeralatan = findCol(sample, ['PERALATAN', 'BAY', 'EQUIPMENT']);
+
+      const giKrit = {};
+      rows.filter(r => (r[cAhi]||'').toUpperCase().includes('KRITIKAL') || (r[cAhi]||'').toUpperCase().includes('POOR')).forEach(r => {
+        if(r[cGi]) giKrit[r[cGi]] = (giKrit[r[cGi]]||0)+1;
+      });
+      const giArr = Object.entries(giKrit).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+      drawBar('c1', giArr, {horizontal: true, color: '#f0546b', unit: 'Kritikal'});
+
+      const ultgCounts = {}; rows.forEach(r => { if(r[cUltg]) ultgCounts[r[cUltg]] = (ultgCounts[r[cUltg]]||0)+1; });
+      const ultgArr = Object.entries(ultgCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c2', ultgArr, {horizontal: false, color: '#4c8dff', unit: 'Unit'});
+
+      const eqKrit = {};
+      rows.filter(r => (r[cAhi]||'').toUpperCase().includes('KRITIKAL') || (r[cAhi]||'').toUpperCase().includes('POOR')).forEach(r => {
+        if(r[cPeralatan]) eqKrit[r[cPeralatan]] = (eqKrit[r[cPeralatan]]||0)+1;
+      });
+      const eqArr = Object.entries(eqKrit).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([label,value])=>({label,value}));
+      drawBar('c3', eqArr, {horizontal: false, color: '#a855f7', unit: 'Kritikal'});
+
+    } else if(currentTab === "db_Kerapatan_Petir"){
+      container.innerHTML = `
+        <div class="chart-card"><div class="chart-title"><span>Top 10 Penghantar Paling Banyak Sambaran (Sequence)</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Penghantar Frekuensi Paling Tinggi Nilai Arus Sambaran (kA)</span></div><canvas id="c2" height="220"></canvas></div>
+      `;
+
+      const cPenghantar = findCol(sample, ['PENGHANTAR', 'JALUR', 'SUTT']);
+      const cArus = findCol(sample, ['BESARAN ARUS', 'ARUS', 'KA']);
+
+      const seqMap = {}; rows.forEach(r => { if(r[cPenghantar]) seqMap[r[cPenghantar]] = (seqMap[r[cPenghantar]]||0)+1; });
+      const seqArr = Object.entries(seqMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+      drawBar('c1', seqArr, {horizontal: true, color: '#f5a623', unit: 'Sambaran'});
+
+      const arusMap = {}; rows.forEach(r => {
+        if(r[cPenghantar] && cArus){
+          const val = parseFloat((r[cArus]||'0').replace(/[^0-9.-]/g,'')) || 0;
+          if(!arusMap[r[cPenghantar]] || Math.abs(val) > Math.abs(arusMap[r[cPenghantar]])) arusMap[r[cPenghantar]] = val;
+        }
+      });
+      const arusArr = Object.entries(arusMap).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,10).map(([label,value])=>({label, value: Math.round(value)}));
+      drawBar('c2', arusArr, {horizontal: false, color: '#a855f7', unit: 'kA'});
+
+    } else if(currentTab === "db_ABO/CE"){
+      container.innerHTML = `
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>PROGRES REALISASI ABO</span>
+            <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
+              <span style="color:#4c8dff">■ BELUM REALISASI</span>
+              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+            </div>
+          </div>
+          <canvas id="c1" height="240"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>PROGRES REALISASI CE</span>
+            <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
+              <span style="color:#4c8dff">■ BELUM REALISASI</span>
+              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+            </div>
+          </div>
+          <canvas id="c2" height="240"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>PROGRES REALISASI ABO PER BIDANG</span>
+            <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
+              <span style="color:#4c8dff">■ BELUM REALISASI</span>
+              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+            </div>
+          </div>
+          <canvas id="c3" height="240"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>PROGRES REALISASI CE PER BIDANG</span>
+            <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
+              <span style="color:#4c8dff">■ BELUM REALISASI</span>
+              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+            </div>
+          </div>
+          <canvas id="c4" height="240"></canvas>
+        </div>
+      `;
+
+      const cols = RAW_SHEET_DATA["db_ABO/CE"].cols;
+      
+      const colB_ULTG = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
+      const colL_Status = getColByLetter(cols, 'L') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
+      const colN_Jenis = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI', 'JENIS']);
+      const colO_Bidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+
+      const aboUltgMap = {}, ceUltgMap = {};
+      const aboBidangMap = {}, ceBidangMap = {};
+
+      rows.forEach(r => {
+        const ultg = (r[colB_ULTG] || r['ULTG'] || 'Unspecified').trim();
+        const bidang = (r[colO_Bidang] || r['BIDANG'] || 'Unspecified').trim();
+        const statusRaw = (r[colL_Status] || r['STATUS REALISASI'] || r['STATUS'] || '').toUpperCase();
+        const jenisRaw = (r[colN_Jenis] || r['JENIS ANOMALI'] || r['ANOMALI'] || r['JENIS'] || '').toUpperCase();
+
+        const isDone = statusRaw.includes('SUDAH') || statusRaw.includes('SELESAI') || statusRaw.includes('100%') || statusRaw.includes('DONE') || statusRaw.includes('YA');
+        const isABO = jenisRaw.includes('ABO');
+        const isCE = jenisRaw.includes('CE');
+
+        if(isABO){
+          if(!aboUltgMap[ultg]) aboUltgMap[ultg] = { done: 0, pending: 0 };
+          if(isDone) aboUltgMap[ultg].done++; else aboUltgMap[ultg].pending++;
+        }
+        if(isCE){
+          if(!ceUltgMap[ultg]) ceUltgMap[ultg] = { done: 0, pending: 0 };
+          if(isDone) ceUltgMap[ultg].done++; else ceUltgMap[ultg].pending++;
+        }
+
+        if(isABO){
+          if(!aboBidangMap[bidang]) aboBidangMap[bidang] = { done: 0, pending: 0 };
+          if(isDone) aboBidangMap[bidang].done++; else aboBidangMap[bidang].pending++;
+        }
+        if(isCE){
+          if(!ceBidangMap[bidang]) ceBidangMap[bidang] = { done: 0, pending: 0 };
+          if(isDone) ceBidangMap[bidang].done++; else ceBidangMap[bidang].pending++;
+        }
+      });
+
+      const formatGroupData = (map) => Object.entries(map).map(([label, counts]) => ({
+        label,
+        values: [
+          { name: 'BELUM REALISASI', value: counts.pending, color: '#4c8dff' },
+          { name: 'SUDAH REALISASI', value: counts.done, color: '#f0546b' }
+        ]
+      })).sort((a,b) => (b.values[0].value + b.values[1].value) - (a.values[0].value + a.values[1].value));
+
+      drawGroupedBar('c1', formatGroupData(aboUltgMap), { unit: 'Item' });
+      drawGroupedBar('c2', formatGroupData(ceUltgMap), { unit: 'Item' });
+      drawGroupedBar('c3', formatGroupData(aboBidangMap), { unit: 'Item' });
+      drawGroupedBar('c4', formatGroupData(ceBidangMap), { unit: 'Item' });
+
+    } else if(currentTab === "db_Proker AO 53"){
+      container.innerHTML = `
+        <div class="chart-card"><div class="chart-title"><span>Top Rank Nilai Rupiah Proker per Bidang</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Distribusi Status Kontrak</span></div><canvas id="c2" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Distribusi Proker Mitigasi</span></div><canvas id="c3" height="220"></canvas></div>
+      `;
+
+      const cBidang = findCol(sample, ['BIDANG']);
+      const cNilai = findCol(sample, ['NILAI KONTRAK', 'NILAI', 'ANGGARAN', 'PAGU']);
+      const cStatusK = findCol(sample, ['STATUS KONTRAK', 'STATUS']);
+      const cMitigasi = findCol(sample, ['PROKER MITIGASI', 'MITIGASI']);
+
+      const bdRupiah = {};
+      rows.forEach(r => {
+        const bd = r[cBidang] || 'Lainnya';
+        bdRupiah[bd] = (bdRupiah[bd] || 0) + parseRupiah(r[cNilai]);
+      });
+      const bdArr = Object.entries(bdRupiah).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value: Math.round(value / 1e6)}));
+      drawBar('c1', bdArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp'});
+
+      const skCounts = {};
+      rows.forEach(r => {
+        const sk = r[cStatusK] || 'Belum Ditentukan';
+        skCounts[sk] = (skCounts[sk] || 0) + 1;
+      });
+      const skArr = Object.entries(skCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c2', skArr, {horizontal: false, color: '#2bd9ab', unit: 'Proker'});
+
+      const mtCounts = {};
+      rows.forEach(r => {
+        const mt = r[cMitigasi] || 'Lainnya';
+        mtCounts[mt] = (mtCounts[mt] || 0) + 1;
+      });
+      const mtArr = Object.entries(mtCounts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+      drawBar('c3', mtArr, {horizontal: false, color: '#f5a623', unit: 'Proker'});
+
+    } else if(currentTab === "db_Paket AI 2026"){
+      container.innerHTML = `
+        <div class="chart-card"><div class="chart-title"><span>Top Rank Nilai Rupiah (Nilai Pagu) per Grup</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Progress / Sebaran per Proses SKKI</span></div><canvas id="c2" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Distribusi Proker per Grup</span></div><canvas id="c3" height="220"></canvas></div>
+      `;
+
+      const cGrup = findCol(sample, ['GRUP', 'GROUP']);
+      const cNilai = findCol(sample, ['NILAI PAGU', 'NILAI KONTRAK', 'NILAI', 'PAGU']);
+      const cSkki = findCol(sample, ['PROSES SKKI', 'SKKI']);
+      const cProker = findCol(sample, ['PROKER', 'PROGRAM KERJA']);
+
+      // 1. Top Rank Nilai Rupiah per Grup
+      const grupRupiah = {};
+      rows.forEach(r => {
+        const g = r[cGrup] || 'Lainnya';
+        grupRupiah[g] = (grupRupiah[g] || 0) + parseRupiah(r[cNilai]);
+      });
+      const grupRupiahArr = Object.entries(grupRupiah).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value: Math.round(value / 1e6)}));
+      drawBar('c1', grupRupiahArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp'});
+
+      // 2. Sebaran Proses SKKI
+      const skkiCounts = {};
+      rows.forEach(r => {
+        const s = r[cSkki] || 'Belum Ditentukan';
+        skkiCounts[s] = (skkiCounts[s] || 0) + 1;
+      });
+      const skkiArr = Object.entries(skkiCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c2', skkiArr, {horizontal: false, color: '#2bd9ab', unit: 'Proker'});
+
+      // 3. Distribusi Proker per Grup
+      const grupCounts = {};
+      rows.forEach(r => {
+        const g = r[cGrup] || 'Lainnya';
+        grupCounts[g] = (grupCounts[g] || 0) + 1;
+      });
+      const grupArr = Object.entries(grupCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c3', grupArr, {horizontal: false, color: '#f5a623', unit: 'Proker'});
+    }
+  }
+
+  function drawBar(canvasId, items, opts){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.parentElement.clientWidth - 36;
+    const cssHeight = parseInt(canvas.getAttribute('height'),10) || 200;
+    canvas.style.width = cssWidth + 'px';
+    canvas.style.height = cssHeight + 'px';
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const textColor = isLight ? '#334155' : '#aab6cc';
+    const textHiColor = isLight ? '#0f172a' : '#e8edf7';
+
+    const unitLabel = opts.unit || "Data";
+
+    if(items.length === 0){
+      ctx.fillStyle = textColor; ctx.font = '12px IBM Plex Sans'; ctx.textAlign = 'center';
+      ctx.fillText('Tidak ada data grafik', cssWidth/2, cssHeight/2);
+      return;
+    }
+
+    const max = Math.max(...items.map(i=>Math.abs(i.value)), 1);
+
+    if(opts.horizontal){
+      const padLeft = 180, padRight = 35, padTop = 10;
+      const gap = (cssHeight - padTop) / items.length;
+      const barH = Math.min(18, gap * 0.7);
+
+      items.forEach((it, i) => {
+        const y = padTop + i * gap;
+        const w = (cssWidth - padLeft - padRight) * (Math.abs(it.value) / max);
+
+        ctx.fillStyle = textColor; ctx.font = '11px IBM Plex Sans'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(it.label.length > 25 ? it.label.slice(0, 24) + '…' : it.label, padLeft - 10, y + barH/2);
+
+        ctx.fillStyle = opts.color || '#4c8dff';
+        roundRect(ctx, padLeft, y, Math.max(w, 2), barH, 3);
+        ctx.fill();
+
+        ctx.fillStyle = textHiColor; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
+        ctx.fillText(it.value.toLocaleString('id-ID'), padLeft + w + 6, y + barH/2);
+      });
+
+      canvas.onmousemove = function(e){
+        const rect = canvas.getBoundingClientRect();
+        const mouseY = e.clientY - rect.top;
+        const gap = (cssHeight - padTop) / items.length;
+        const idx = Math.floor((mouseY - padTop) / gap);
+        if(idx >= 0 && idx < items.length){
+          canvas.title = `${items[idx].label} — ${items[idx].value.toLocaleString('id-ID')} ${unitLabel}`;
+        } else {
+          canvas.title = '';
+        }
+      };
+
+    } else {
+      const padLeft = 30, padRight = 20, padBottom = 30, padTop = 20;
+      const barAreaW = cssWidth - padLeft - padRight;
+      const gap = barAreaW / items.length;
+      const barW = Math.min(32, gap * 0.6);
+
+      items.forEach((it, i) => {
+        const h = (cssHeight - padTop - padBottom) * (Math.abs(it.value) / max);
+        const x = padLeft + i * gap + (gap - barW)/2;
+        const y = cssHeight - padBottom - h;
+
+        ctx.fillStyle = opts.color || '#f5a623';
+        roundRect(ctx, x, y, barW, h, 3);
+        ctx.fill();
+
+        ctx.fillStyle = textHiColor; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+        ctx.fillText(it.value, x + barW/2, y - 5);
+
+        ctx.fillStyle = textColor; ctx.font = '10px IBM Plex Sans';
+        ctx.fillText(it.label.length > 10 ? it.label.slice(0, 9) + '…' : it.label, x + barW/2, cssHeight - 10);
+      });
+
+      canvas.onmousemove = function(e){
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const barAreaW = cssWidth - padLeft - padRight;
+        const gap = barAreaW / items.length;
+        const idx = Math.floor((mouseX - padLeft) / gap);
+        if(idx >= 0 && idx < items.length){
+          canvas.title = `${items[idx].label} — ${items[idx].value.toLocaleString('id-ID')} ${unitLabel}`;
+        } else {
+          canvas.title = '';
+        }
+      };
+    }
+  }
+
+  function drawGroupedBar(canvasId, items, opts){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.parentElement.clientWidth - 36;
+    const cssHeight = parseInt(canvas.getAttribute('height'),10) || 240;
+    canvas.style.width = cssWidth + 'px';
+    canvas.style.height = cssHeight + 'px';
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const textColor = isLight ? '#334155' : '#aab6cc';
+    const textHiColor = isLight ? '#0f172a' : '#e8edf7';
+    const gridColor = isLight ? '#e2e8f0' : '#1a2440';
+
+    if(items.length === 0){
+      ctx.fillStyle = textColor; ctx.font = '12px IBM Plex Sans'; ctx.textAlign = 'center';
+      ctx.fillText('Tidak ada data grafik', cssWidth/2, cssHeight/2);
+      return;
+    }
+
+    let maxVal = 1;
+    items.forEach(it => {
+      it.values.forEach(v => {
+        if(v.value > maxVal) maxVal = v.value;
+      });
+    });
+    maxVal = Math.ceil(maxVal * 1.15);
+
+    const padLeft = 40, padRight = 20, padBottom = 35, padTop = 25;
+    const chartW = cssWidth - padLeft - padRight;
+    const chartH = cssHeight - padTop - padBottom;
+
+    const steps = 4;
+    ctx.lineWidth = 1;
+    for(let s = 0; s <= steps; s++){
+      const val = Math.round((maxVal / steps) * s);
+      const y = cssHeight - padBottom - (chartH / steps) * s;
+
+      ctx.strokeStyle = gridColor;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, y);
+      ctx.lineTo(cssWidth - padRight, y);
+      ctx.stroke();
+
+      ctx.fillStyle = textColor; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(val, padLeft - 8, y);
+    }
+
+    const groupGap = chartW / items.length;
+    const subBarW = Math.min(26, (groupGap * 0.65) / 2);
+
+    items.forEach((it, i) => {
+      const groupX = padLeft + i * groupGap + (groupGap - (subBarW * 2 + 6))/2;
+
+      it.values.forEach((v, vIdx) => {
+        const h = chartH * (v.value / maxVal);
+        const x = groupX + vIdx * (subBarW + 6);
+        const y = cssHeight - padBottom - h;
+
+        ctx.fillStyle = v.color;
+        roundRect(ctx, x, y, subBarW, Math.max(h, 2), 3);
+        ctx.fill();
+
+        ctx.fillStyle = textHiColor; ctx.font = '10.5px JetBrains Mono'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(v.value.toLocaleString('id-ID'), x + subBarW/2, y - 6);
+      });
+
+      ctx.fillStyle = textColor; ctx.font = '11px IBM Plex Sans'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText(it.label.length > 15 ? it.label.slice(0, 14) + '…' : it.label, groupX + subBarW + 3, cssHeight - 10);
+    });
+
+    canvas.onmousemove = function(e){
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const idx = Math.floor((mouseX - padLeft) / groupGap);
+      if(idx >= 0 && idx < items.length){
+        const detailStr = items[idx].values.map(v => `${v.name}: ${v.value}`).join(' | ');
+        canvas.title = `${items[idx].label} -> ${detailStr}`;
+      } else {
+        canvas.title = '';
+      }
+    };
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function renderTable(cols, rows){
+    const st = tabStates[currentTab];
+    const thead = document.getElementById('tableHead');
+    const tbody = document.getElementById('tableBody');
+
+    let validCols = cols;
+    if(currentTab === "db_Proker AO 53"){
+      validCols = cols.filter(c => {
+        const name = c.toUpperCase().trim();
+        return name !== 'PIC' && name !== 'NILAI PAGU';
+      });
+    }
+
+    const displayCols = validCols.slice(0, 9);
+
+    let sortedRows = [...rows];
+    if(st.sortKey){
+      sortedRows.sort((a,b) => {
+        let va = a[st.sortKey] || '', vb = b[st.sortKey] || '';
+        let na = parseFloat(va.replace(/[^0-9.-]/g,'')), nb = parseFloat(vb.replace(/[^0-9.-]/g,''));
+        let cmp = (!isNaN(na) && !isNaN(nb)) ? na - nb : va.localeCompare(vb);
+        return st.sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    thead.innerHTML = `<tr>${displayCols.map(c => {
+      const active = st.sortKey === c;
+      const arrow = active ? (st.sortDir === 'asc' ? '↑' : '↓') : '↕';
+      return `<th data-col="${escapeAttr(c)}" class="${active?'active':''}">${escapeHtml(c)} <span class="arrow">${arrow}</span></th>`;
+    }).join('')}</tr>`;
+
+    thead.querySelectorAll('th').forEach(th => {
+      th.onclick = () => {
+        const col = th.dataset.col;
+        if(st.sortKey === col){ st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc'; }
+        else { st.sortKey = col; st.sortDir = 'asc'; }
+        renderDashboard();
+      };
+    });
+
+    const total = sortedRows.length;
+    const pageSize = 20;
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    if(st.page > pageCount) st.page = pageCount;
+    const startIdx = (st.page - 1) * pageSize;
+    const pageItems = sortedRows.slice(startIdx, startIdx + pageSize);
+
+    document.getElementById('tableCount').textContent = `Tabel Data [${currentTab}] — ${total.toLocaleString('id-ID')} entries`;
+
+    if(pageItems.length === 0){
+      tbody.innerHTML = `<tr><td colspan="${displayCols.length}"><div style="text-align:center;padding:40px;color:var(--text-lo)">Tidak ada data.</div></td></tr>`;
+    } else {
+      tbody.innerHTML = pageItems.map(r => {
+        return `<tr>` + displayCols.map((c, idx) => {
+          let val = r[c];
+          if((val === undefined || val === null) && c.toUpperCase() === 'ANOMALI'){
+            val = r['JENIS'] || r['Jenis'] || r['anomali'] || '-';
+          }
+          if(!val) val = '-';
+
+          const isPrimary = idx === 0 || c.toUpperCase().includes('NOMOR') || c.toUpperCase().includes('NO') || c.toUpperCase().includes('PROGRAM') || c.toUpperCase().includes('CODE');
+          const isBadge = val.toUpperCase().includes('SELESAI') || val.toUpperCase().includes('BARU') || val.toUpperCase().includes('PROSES') || val.toUpperCase().includes('GOOD') || val.toUpperCase().includes('KRITIKAL') || val.toUpperCase().includes('100%') || val.toUpperCase().includes('KONTRAK') || val.toUpperCase().includes('SKKI');
+
+          if(isBadge){
+            let bStyle = 'badge-grey';
+            if(val.toUpperCase().includes('SELESAI') || val.toUpperCase().includes('GOOD') || val.toUpperCase().includes('100%') || val.toUpperCase().includes('TERKONTRAK')) bStyle = 'badge-teal';
+            else if(val.toUpperCase().includes('PROSES') || val.toUpperCase().includes('FAIR') || val.toUpperCase().includes('LELANG')) bStyle = 'badge-amber';
+            else if(val.toUpperCase().includes('BARU') || val.toUpperCase().includes('PERENCANAAN')) bStyle = 'badge-blue';
+            else if(val.toUpperCase().includes('KRITIKAL') || val.toUpperCase().includes('POOR') || val.toUpperCase().includes('BATAL')) bStyle = 'badge-red';
+            return `<td><span class="badge ${bStyle}">${escapeHtml(val)}</span></td>`;
+          }
+          return `<td class="${isPrimary?'primary-text':''}">${escapeHtml(val.length > 50 ? val.slice(0,48)+'...' : val)}</td>`;
+        }).join('') + `</tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('tr').forEach((tr, idx) => {
+        tr.onclick = () => openDrawer(pageItems[idx]);
+      });
+    }
+
+    document.getElementById('tableRange').textContent = total === 0 ? '' : `Menampilkan ${startIdx+1}–${Math.min(startIdx+pageSize,total)} dari ${total}`;
+    
+    const pager = document.getElementById('pager');
+    pager.innerHTML = `
+      <button id="pgPrev" ${st.page<=1?'disabled':''}>‹</button>
+      <span style="padding:0 8px">${st.page} / ${pageCount}</span>
+      <button id="pgNext" ${st.page>=pageCount?'disabled':''}>›</button>
+    `;
+    document.getElementById('pgPrev').onclick = () => { st.page--; renderDashboard(); };
+    document.getElementById('pgNext').onclick = () => { st.page++; renderDashboard(); };
+  }
+
+  function openDrawer(rowObj){
+    const drawer = document.getElementById('drawer');
+    const entries = Object.entries(rowObj);
+    const title = entries[0] ? entries[0][1] : 'Detail Entry';
+
+    drawer.innerHTML = `
+      <div class="drawer-head">
+        <div>
+          <div class="drawer-label">${currentTab}</div>
+          <div class="drawer-title">${escapeHtml(title)}</div>
+        </div>
+        <button class="drawer-close" id="drawerClose">✕</button>
+      </div>
+      <div class="drawer-grid">
+        ${entries.map(([k,v])=>`
+          <div style="grid-column: ${v.length>35?'span 2':'span 1'}">
+            <div class="drawer-label">${escapeHtml(k)}</div>
+            <div class="drawer-value">${escapeHtml(v||'-')}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    document.getElementById('drawerClose').onclick = () => document.getElementById('overlay').classList.remove('open');
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  document.getElementById('overlay').onclick = (e) => {
+    if(e.target.id === 'overlay') document.getElementById('overlay').classList.remove('open');
+  };
+
+  function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+  document.getElementById('refreshBtn').onclick = fetchAllLiveData;
+
+  fetchAllLiveData();
+
+})();
+</script>
+</body>
+</html>
