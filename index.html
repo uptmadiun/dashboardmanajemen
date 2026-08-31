@@ -71,6 +71,32 @@ body{
 ::-webkit-scrollbar-track{background:var(--bg-1);}
 ::-webkit-scrollbar-thumb{background:var(--panel-border);border-radius:4px;}
 
+/* ---------- LOGIN OVERLAY / PAGE ---------- */
+.login-container{
+  display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;
+}
+.login-card{
+  background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;
+  padding:36px;width:100%;max-width:400px;box-shadow:0 12px 32px rgba(0,0,0,0.4);
+}
+.login-title{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-0.01em;}
+.login-sub{font-size:12.5px;color:var(--text-mid);margin-bottom:24px;line-height:1.4;}
+.login-field{margin-bottom:16px;}
+.login-field label{display:block;font-size:10.5px;color:var(--text-lo);text-transform:uppercase;font-family:var(--mono);margin-bottom:6px;}
+.login-field input{
+  width:100%;background:var(--bg-1);border:1px solid var(--panel-border-soft);
+  color:var(--text-hi);padding:10px 12px;border-radius:6px;font-size:13.5px;font-family:var(--sans);
+  outline:none;transition:border-color .15s ease;
+}
+.login-field input:focus{border-color:var(--blue);}
+.login-btn{
+  width:100%;background:var(--teal);color:#080c14;font-family:var(--mono);font-weight:700;
+  font-size:12.5px;padding:12px;border-radius:6px;border:none;cursor:pointer;margin-top:10px;
+  transition:filter .15s ease;text-transform:uppercase;letter-spacing:.05em;
+}
+.login-btn:hover{filter:brightness(1.15);}
+.login-error{color:var(--red);font-size:11.5px;font-family:var(--mono);margin-top:12px;text-align:center;display:none;}
+
 .wrap{max-width:1500px;margin:0 auto;padding:24px 20px 60px;}
 
 /* ---------- HEADER ---------- */
@@ -88,16 +114,18 @@ body{
 h1{font-size:26px;margin:0 0 4px;font-weight:700;letter-spacing:-0.01em;}
 .subtitle{color:var(--text-mid);font-size:13px;max-width:680px;line-height:1.4;}
 .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.header-actions{display:flex;gap:8px;align-items:center;}
 .header-meta{font-family:var(--mono);font-size:12px;color:var(--text-lo);text-align:right;line-height:1.7;}
 .header-meta b{color:var(--text-hi);font-weight:600;}
 
-.theme-toggle{
+.theme-toggle, .logout-btn{
   background:var(--bg-1);border:1px solid var(--panel-border);
   color:var(--text-hi);font-family:var(--mono);font-size:11px;
   padding:6px 12px;border-radius:20px;cursor:pointer;
   display:flex;align-items:center;gap:6px;transition:all .15s ease;
 }
 .theme-toggle:hover{border-color:var(--blue);}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
 
 /* ---------- NAVIGATION TABS ---------- */
 .tab-navigation{
@@ -259,106 +287,175 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div>
-      <div class="eyebrow">Sistem Pemantauan Operational & Asset Health — UPT Madiun</div>
-      <h1 id="tabMainTitle">Executive Integrated Dashboard</h1>
-      <div class="subtitle" id="tabMainSub">Platform Analitik Terpadu Monitoring Anomali Peralatan, Asset Health Index (AHI) MTU, Kerapatan Petir, ABO/CE, dan Proker AO 53.</div>
+  <!-- LOGIN PAGE WRAPPER -->
+  <div id="loginPage" class="login-container">
+    <div class="login-card">
+      <div class="login-title">Executive System Login</div>
+      <div class="login-sub">Masukkan akun manajemen untuk mengakses operational dashboard ULTG Renev.</div>
+      <form id="loginForm">
+        <div class="login-field">
+          <label>Username</label>
+          <input type="text" id="userInput" placeholder="Masukkan username..." required autocomplete="username">
+        </div>
+        <div class="login-field">
+          <label>Password</label>
+          <input type="password" id="passInput" placeholder="Masukkan password..." required autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-btn">Masuk Dashboard</button>
+        <div id="loginError" class="login-error">Username atau password salah!</div>
+      </form>
     </div>
-    <div class="header-right">
-      <button class="theme-toggle" id="themeToggleBtn">🌙 Mode Malam</button>
-      <div class="header-meta" id="headerMeta"></div>
-    </div>
   </div>
 
-  <!-- NAVIGATION TABS -->
-  <div class="tab-navigation" id="tabNav">
-    <div class="nav-tab active" data-sheet="db_Anomali">⚡ Dashboard Anomali <span class="badge-count" id="cnt_db_Anomali">0</span></div>
-    <div class="nav-tab" data-sheet="db_MTU_AHI">🩺 Dashboard AHI MTU <span class="badge-count" id="cnt_db_MTU_AHI">0</span></div>
-    <div class="nav-tab" data-sheet="db_Kerapatan_Petir">🌩️ Dashboard Kerapatan Petir <span class="badge-count" id="cnt_db_Kerapatan_Petir">0</span></div>
-    <div class="nav-tab" data-sheet="db_ABO/CE">📋 Dashboard ABO CE <span class="badge-count" id="cnt_db_ABO/CE">0</span></div>
-    <div class="nav-tab" data-sheet="db_Proker AO 53">💼 Dashboard Proker AO 53 <span class="badge-count" id="cnt_db_Proker AO 53">0</span></div>
-    <div class="nav-tab" data-sheet="db_Paket AI 2026">🤖 Dashboard Paket AI 2026 <span class="badge-count" id="cnt_db_Paket AI 2026">0</span></div>
-  </div>
+  <!-- MAIN DASHBOARD WRAPPER -->
+  <div id="appContainer" class="wrap" style="display:none;">
 
-  <!-- LIVE STATUS -->
-  <div class="live-status">
-    <span class="live-dot" id="liveDot"></span>
-    <span id="liveStatusText">Menghubungkan ke Google Sheets…</span>
-    <button id="refreshBtn" class="refresh-btn" title="Muat ulang data">⟳ Refresh Live Data</button>
-  </div>
-
-  <div id="errorBanner" class="error-banner" style="display:none;">
-    <div class="error-title">Gagal Memuat Data</div>
-    <div class="error-desc" id="errorDesc">Periksa koneksi internet atau sharing permission Google Sheets.</div>
-  </div>
-
-  <div id="loadingState" class="loading-state">
-    <div class="loading-spinner"></div>
-    <div class="loading-text" id="loadingText">Menarik data dari Google Sheets…</div>
-  </div>
-
-  <!-- DASHBOARD CONTENT AREA -->
-  <div id="dashboardContent" style="display:none;">
-    
-    <!-- KPI ROW -->
-    <div class="kpi-row" id="kpiRow"></div>
-
-    <!-- BUSBAR PROGRESS BAR -->
-    <div class="busbar-card" id="busbarCard">
-      <div class="busbar-title"><span id="busbarTitle">Busbar Diagram Track</span><span id="busbarCount">0 Data</span></div>
-      <div class="busbar-track" id="busbarTrack"></div>
-      <div class="busbar-legend" id="busbarLegend"></div>
-    </div>
-
-    <!-- FILTERS CARD -->
-    <div class="filters-card">
-      <div class="filters-head">
-        <div class="ft-label">Filter Custom Dashboard</div>
-        <button class="reset-btn" id="resetBtn">Reset Filter</button>
+    <!-- HEADER -->
+    <div class="header">
+      <div>
+        <div class="eyebrow">Sistem Pemantauan Operational & Asset Health — ULTG Renev</div>
+        <h1 id="tabMainTitle">Executive Integrated Dashboard</h1>
+        <div class="subtitle" id="tabMainSub">Platform Analitik Terpadu Monitoring Anomali Peralatan, Asset Health Index (AHI) MTU, Kerapatan Petir, ABO/CE, dan Proker AO 53.</div>
       </div>
-      <div class="filters-grid" id="filtersGrid"></div>
-      <div class="search-row">
-        <div class="field"><label>Pencarian Spesifik / Key Word Search</label><input type="text" id="f-search" placeholder="Ketik kata kunci pencarian..."></div>
+      <div class="header-right">
+        <div class="header-actions">
+          <button class="theme-toggle" id="themeToggleBtn">🌙 Mode Malam</button>
+          <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+        </div>
+        <div class="header-meta" id="headerMeta"></div>
       </div>
     </div>
 
-    <!-- CHARTS GRID -->
-    <div class="charts-grid" id="chartsGrid"></div>
-
-    <!-- DATA TABLE CARD -->
-    <div class="table-card">
-      <div class="table-head">
-        <div class="ft-label" id="tableCount">Data Detail</div>
-      </div>
-      <div class="table-scroll">
-        <table>
-          <thead id="tableHead"></thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-      <div class="table-footer">
-        <div id="tableRange"></div>
-        <div class="pager" id="pager"></div>
-      </div>
+    <!-- NAVIGATION TABS -->
+    <div class="tab-navigation" id="tabNav">
+      <div class="nav-tab active" data-sheet="db_Anomali">⚡ Dashboard Anomali <span class="badge-count" id="cnt_db_Anomali">0</span></div>
+      <div class="nav-tab" data-sheet="db_MTU_AHI">🩺 Dashboard AHI MTU <span class="badge-count" id="cnt_db_MTU_AHI">0</span></div>
+      <div class="nav-tab" data-sheet="db_Kerapatan_Petir">🌩️ Dashboard Kerapatan Petir <span class="badge-count" id="cnt_db_Kerapatan_Petir">0</span></div>
+      <div class="nav-tab" data-sheet="db_ABO/CE">📋 Dashboard ABO CE <span class="badge-count" id="cnt_db_ABO/CE">0</span></div>
+      <div class="nav-tab" data-sheet="db_Proker AO 53">💼 Dashboard Proker AO 53 <span class="badge-count" id="cnt_db_Proker AO 53">0</span></div>
+      <div class="nav-tab" data-sheet="db_Paket AI 2026">🤖 Dashboard Paket AI 2026 <span class="badge-count" id="cnt_db_Paket AI 2026">0</span></div>
     </div>
 
+    <!-- LIVE STATUS -->
+    <div class="live-status">
+      <span class="live-dot" id="liveDot"></span>
+      <span id="liveStatusText">Menghubungkan ke Google Sheets…</span>
+      <button id="refreshBtn" class="refresh-btn" title="Muat ulang data">⟳ Refresh Live Data</button>
+    </div>
+
+    <div id="errorBanner" class="error-banner" style="display:none;">
+      <div class="error-title">Gagal Memuat Data</div>
+      <div class="error-desc" id="errorDesc">Periksa koneksi internet atau sharing permission Google Sheets.</div>
+    </div>
+
+    <div id="loadingState" class="loading-state">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loadingText">Menarik data dari Google Sheets…</div>
+    </div>
+
+    <!-- DASHBOARD CONTENT AREA -->
+    <div id="dashboardContent" style="display:none;">
+      
+      <!-- KPI ROW -->
+      <div class="kpi-row" id="kpiRow"></div>
+
+      <!-- BUSBAR PROGRESS BAR -->
+      <div class="busbar-card" id="busbarCard">
+        <div class="busbar-title"><span id="busbarTitle">Busbar Diagram Track</span><span id="busbarCount">0 Data</span></div>
+        <div class="busbar-track" id="busbarTrack"></div>
+        <div class="busbar-legend" id="busbarLegend"></div>
+      </div>
+
+      <!-- FILTERS CARD -->
+      <div class="filters-card">
+        <div class="filters-head">
+          <div class="ft-label">Filter Custom Dashboard</div>
+          <button class="reset-btn" id="resetBtn">Reset Filter</button>
+        </div>
+        <div class="filters-grid" id="filtersGrid"></div>
+        <div class="search-row">
+          <div class="field"><label>Pencarian Spesifik / Key Word Search</label><input type="text" id="f-search" placeholder="Ketik kata kunci pencarian..."></div>
+        </div>
+      </div>
+
+      <!-- CHARTS GRID -->
+      <div class="charts-grid" id="chartsGrid"></div>
+
+      <!-- DATA TABLE CARD -->
+      <div class="table-card">
+        <div class="table-head">
+          <div class="ft-label" id="tableCount">Data Detail</div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <div id="tableRange"></div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer">ULTG Renev Integrated System · Operational Decision Support System</div>
   </div>
 
-  <div class="footer">UPT Madiun Integrated System · Operational Decision Support System</div>
-</div>
-
-<!-- DRAWER DETAIL -->
-<div class="overlay" id="overlay">
-  <div class="drawer" id="drawer"></div>
-</div>
+  <!-- DRAWER DETAIL -->
+  <div class="overlay" id="overlay">
+    <div class="drawer" id="drawer"></div>
+  </div>
 
 <script>
 (function(){
   "use strict";
+
+  // LOGIN CONTROLLER
+  const AUTH_USER = "manajemen";
+  const AUTH_PASS = "madiun01";
+
+  function initAuth(){
+    const loginPage = document.getElementById('loginPage');
+    const appContainer = document.getElementById('appContainer');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const isLogged = localStorage.getItem('ultg_logged_in') === 'true';
+    if(isLogged){
+      loginPage.style.display = 'none';
+      appContainer.style.display = 'block';
+      fetchAllLiveData();
+    } else {
+      loginPage.style.display = 'flex';
+      appContainer.style.display = 'none';
+    }
+
+    loginForm.onsubmit = function(e){
+      e.preventDefault();
+      const u = document.getElementById('userInput').value.trim();
+      const p = document.getElementById('passInput').value.trim();
+
+      if(u === AUTH_USER && p === AUTH_PASS){
+        localStorage.setItem('ultg_logged_in', 'true');
+        loginPage.style.display = 'none';
+        appContainer.style.display = 'block';
+        fetchAllLiveData();
+      } else {
+        loginError.style.display = 'block';
+      }
+    };
+
+    logoutBtn.onclick = function(){
+      localStorage.removeItem('ultg_logged_in');
+      location.reload();
+    };
+  }
+
+  initAuth();
 
   // AUTOMATIC DAY / NIGHT THEME ENGINE
   let userThemeOverride = null;
@@ -474,6 +571,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
   }
 
   function fetchAllLiveData(){
+    if(localStorage.getItem('ultg_logged_in') !== 'true') return;
     currentFetchIndex = 0;
     RAW_SHEET_DATA = {};
     document.getElementById('refreshBtn').disabled = true;
@@ -1245,7 +1343,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const cSkki = findCol(sample, ['PROSES SKKI', 'SKKI']);
       const cProker = findCol(sample, ['PROKER', 'PROGRAM KERJA']);
 
-      // 1. Top Rank Nilai Rupiah per Grup
       const grupRupiah = {};
       rows.forEach(r => {
         const g = r[cGrup] || 'Lainnya';
@@ -1254,7 +1351,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const grupRupiahArr = Object.entries(grupRupiah).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value: Math.round(value / 1e6)}));
       drawBar('c1', grupRupiahArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp'});
 
-      // 2. Sebaran Proses SKKI
       const skkiCounts = {};
       rows.forEach(r => {
         const s = r[cSkki] || 'Belum Ditentukan';
@@ -1263,7 +1359,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const skkiArr = Object.entries(skkiCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
       drawBar('c2', skkiArr, {horizontal: false, color: '#2bd9ab', unit: 'Proker'});
 
-      // 3. Distribusi Proker per Grup
       const grupCounts = {};
       rows.forEach(r => {
         const g = r[cGrup] || 'Lainnya';
@@ -1596,8 +1691,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
   function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
 
   document.getElementById('refreshBtn').onclick = fetchAllLiveData;
-
-  fetchAllLiveData();
 
 })();
 </script>
