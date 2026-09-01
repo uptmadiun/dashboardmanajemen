@@ -168,13 +168,15 @@ h1{font-size:26px;margin:0 0 4px;font-weight:700;letter-spacing:-0.01em;}
 .refresh-btn:hover{border-color:var(--blue);color:var(--blue);}
 
 /* ---------- KPI ROW ---------- */
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:10px;margin-bottom:20px;}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:10px;margin-bottom:20px;}
 .kpi{
   background:var(--panel);border:1px solid var(--panel-border-soft);border-radius:10px;
   padding:14px;position:relative;overflow:hidden;
 }
 .kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kpi-color,var(--blue));}
-.kpi-label{font-size:10.5px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kpi-header-flex{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:4px;}
+.kpi-label{font-size:10.5px;color:var(--text-lo);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kpi-rupiah{font-size:10px;font-family:var(--mono);color:var(--teal);background:var(--teal-dim);padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:600;}
 .kpi-value{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-0.02em;color:var(--text-hi);}
 .kpi-sub{font-size:10.5px;color:var(--text-mid);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
@@ -666,7 +668,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     setupFilters(dataObj);
     const filteredRows = getFilteredRows(dataObj.rows);
 
-    renderKPIs(filteredRows);
+    renderKPIs(filteredRows, dataObj.rows);
     renderBusbarTrack(filteredRows);
     renderCharts(filteredRows);
 
@@ -912,7 +914,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     });
   }
 
-  function renderKPIs(rows){
+  function renderKPIs(rows, masterRows){
     const container = document.getElementById('kpiRow');
     const total = rows.length;
     const sample = rows[0];
@@ -984,36 +986,70 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       ];
     } else if(currentTab === "db_Proker AO 53"){
       const cBidang = findCol(sample, ['BIDANG']);
-      const cntBd = key => rows.filter(r => (r[cBidang]||'').toUpperCase().includes(key.toUpperCase())).length;
+      const cNilai = findCol(sample, ['NILAI KONTRAK', 'NILAI', 'ANGGARAN', 'PAGU']);
+
+      const calcStat = (filterKey) => {
+        const subRows = masterRows.filter(r => filterKey === '' || (r[cBidang]||'').toUpperCase().includes(filterKey.toUpperCase()));
+        const count = subRows.length;
+        const sumRp = subRows.reduce((acc, r) => acc + parseRupiah(r[cNilai]), 0);
+        return { count, sumRp };
+      };
+
+      const sTotal = calcStat('');
+      const sGI = calcStat('GI');
+      const sJar = calcStat('JARINGAN');
+      const sProt = calcStat('PROTEKSI');
+      const sK3Kam = calcStat('K3') || calcStat('KAM');
+      const sK3Lingk = calcStat('LINGK');
+      const sKons = calcStat('KONS');
+      const sPdkb = calcStat('PDKB');
+      const sUmum = calcStat('UMUM');
 
       kpis = [
-        {label: 'Total Proker', value: total, sub: 'Program Kerja AO 53', color: 'var(--blue)'},
-        {label: 'GI', value: cntBd('GI') + cntBd('GARDU INDUK'), sub: 'Gardu Induk', color: 'var(--teal)'},
-        {label: 'Jaringan', value: cntBd('JARINGAN'), sub: 'Transmisi / SUTT', color: 'var(--blue)'},
-        {label: 'Proteksi', value: cntBd('PROTEKSI'), sub: 'Sistem Proteksi', color: 'var(--purple)'},
-        {label: 'K3Kam.', value: cntBd('K3') + cntBd('KAM'), sub: 'K3 & Keamanan', color: 'var(--amber)'},
-        {label: 'K3Lingk.', value: cntBd('LINGK'), sub: 'Lingkungan', color: 'var(--teal)'},
-        {label: 'Kons', value: cntBd('KONS') + cntBd('KONSTRUKSI'), sub: 'Pekerjaan Kons', color: 'var(--amber)'},
-        {label: 'PDKB', value: cntBd('PDKB'), sub: 'Tim PDKB', color: 'var(--red)'},
-        {label: 'Umum', value: cntBd('UMUM'), sub: 'Sekretariat/Umum', color: 'var(--grey)'}
+        {label: 'TOTAL PROKER', value: sTotal.count, sub: 'Program Kerja AO 53', color: 'var(--blue)', rupiah: formatRupiahShort(sTotal.sumRp) + ' Rp'},
+        {label: 'GI', value: sGI.count, sub: 'Gardu Induk', color: 'var(--teal)', rupiah: formatRupiahShort(sGI.sumRp) + ' Rp'},
+        {label: 'JARINGAN', value: sJar.count, sub: 'Transmisi / SUTT', color: 'var(--blue)', rupiah: formatRupiahShort(sJar.sumRp) + ' Rp'},
+        {label: 'PROTEKSI', value: sProt.count, sub: 'Sistem Proteksi', color: 'var(--purple)', rupiah: formatRupiahShort(sProt.sumRp) + ' Rp'},
+        {label: 'K3KAM.', value: sK3Kam.count, sub: 'K3 & Keamanan', color: 'var(--amber)', rupiah: formatRupiahShort(sK3Kam.sumRp) + ' Rp'},
+        {label: 'K3LINGK.', value: sK3Lingk.count, sub: 'Lingkungan', color: 'var(--teal)', rupiah: formatRupiahShort(sK3Lingk.sumRp) + ' Rp'},
+        {label: 'KONS', value: sKons.count, sub: 'Pekerjaan Kons', color: 'var(--amber)', rupiah: formatRupiahShort(sKons.sumRp) + ' Rp'},
+        {label: 'PDKB', value: sPdkb.count, sub: 'Tim PDKB', color: 'var(--red)', rupiah: formatRupiahShort(sPdkb.sumRp) + ' Rp'},
+        {label: 'UMUM', value: sUmum.count, sub: 'Sekretariat/Umum', color: 'var(--grey)', rupiah: formatRupiahShort(sUmum.sumRp) + ' Rp'}
       ];
     } else if(currentTab === "db_Paket AI 2026"){
       const cGrup = findCol(sample, ['GRUP', 'GROUP']);
-      const cntGrup = name => rows.filter(r => (r[cGrup]||'').toUpperCase().includes(name.toUpperCase())).length;
+      const cNilaiTerkontrak = findCol(sample, ['NILAI TERKONTRAK', 'TERKONTRAK', 'NILAI KONTRAK', 'KONTRAK']);
+
+      const calcStatGrup = (filterKey) => {
+        const subRows = masterRows.filter(r => filterKey === '' || (r[cGrup]||'').toUpperCase().includes(filterKey.toUpperCase()));
+        const count = subRows.length;
+        const sumRp = subRows.reduce((acc, r) => acc + parseRupiah(r[cNilaiTerkontrak]), 0);
+        return { count, sumRp };
+      };
+
+      const sTotal = calcStatGrup('');
+      const sPrimer = calcStatGrup('KEANDALAN PERALATAN PRIMER');
+      const sMtu = calcStatGrup('MTU P0');
+      const sSekunder = calcStatGrup('SEKUNDER');
+      const sTransmisi = calcStatGrup('KEANDALAN TRANSMISI');
+      const sSarana = calcStatGrup('SARANA PENDUKUNG');
 
       kpis = [
-        {label: 'Total Proker', value: total, sub: 'Paket AI 2026', color: 'var(--blue)'},
-        {label: 'Keandalan Peralatan Primer', value: cntGrup('KEANDALAN PERALATAN PRIMER'), sub: 'Grup Primer', color: 'var(--teal)'},
-        {label: 'MTU P0', value: cntGrup('MTU P0'), sub: 'Grup MTU P0', color: 'var(--amber)'},
-        {label: 'Keandalan Sistem Sekunder GI', value: cntGrup('KEANDALAN SISTEM SEKUNDER GARDU INDUK') + cntGrup('SEKUNDER'), sub: 'Grup Sekunder GI', color: 'var(--purple)'},
-        {label: 'Keandalan Transmisi', value: cntGrup('KEANDALAN TRANSMISI'), sub: 'Grup Transmisi', color: 'var(--blue)'},
-        {label: 'Sarana Pendukung', value: cntGrup('SARANA PENDUKUNG'), sub: 'Grup Sarana', color: 'var(--grey)'}
+        {label: 'TOTAL PROKER', value: sTotal.count, sub: 'Paket AI 2026', color: 'var(--blue)', rupiah: formatRupiahShort(sTotal.sumRp) + ' Rp'},
+        {label: 'PERALATAN PRIMER', value: sPrimer.count, sub: 'Grup Primer', color: 'var(--teal)', rupiah: formatRupiahShort(sPrimer.sumRp) + ' Rp'},
+        {label: 'MTU P0', value: sMtu.count, sub: 'Grup MTU P0', color: 'var(--amber)', rupiah: formatRupiahShort(sMtu.sumRp) + ' Rp'},
+        {label: 'SISTEM SEKUNDER', value: sSekunder.count, sub: 'Grup Sekunder GI', color: 'var(--purple)', rupiah: formatRupiahShort(sSekunder.sumRp) + ' Rp'},
+        {label: 'TRANSMISI', value: sTransmisi.count, sub: 'Grup Transmisi', color: 'var(--blue)', rupiah: formatRupiahShort(sTransmisi.sumRp) + ' Rp'},
+        {label: 'SARANA PENDUKUNG', value: sSarana.count, sub: 'Grup Sarana', color: 'var(--grey)', rupiah: formatRupiahShort(sSarana.sumRp) + ' Rp'}
       ];
     }
 
     container.innerHTML = kpis.map(k=>`
       <div class="kpi" style="--kpi-color:${k.color}">
-        <div class="kpi-label">${escapeHtml(k.label)}</div>
+        <div class="kpi-header-flex">
+          <div class="kpi-label">${escapeHtml(k.label)}</div>
+          ${k.rupiah ? `<div class="kpi-rupiah">${escapeHtml(k.rupiah)}</div>` : ''}
+        </div>
         <div class="kpi-value">${typeof k.value==='number'? k.value.toLocaleString('id-ID') : escapeHtml(k.value)}</div>
         <div class="kpi-sub">${escapeHtml(k.sub)}</div>
       </div>
@@ -1044,7 +1080,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
     const palette = ['#4c8dff', '#2bd9ab', '#f5a623', '#f0546b', '#a855f7', '#06b6d4', '#ec4899', '#84cc16', '#eab308', '#6366f1', '#64748b'];
 
-    if(currentTab === "db_Proker AO 53" || currentTab === "db_Paket AI 2026"){
+    if(currentTab === "db_Proker AO 53"){
       document.getElementById('busbarTitle').textContent = `Busbar Diagram Track — Proporsi Nilai Rupiah (Nilai Pagu) [${keyCol}]`;
       const cNilai = findCol(sample, ['NILAI PAGU', 'NILAI KONTRAK', 'NILAI', 'ANGGARAN', 'PAGU']);
 
@@ -1054,6 +1090,34 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       rows.forEach(r => {
         const bd = r[keyCol] || 'Unspecified';
         const Rp = parseRupiah(r[cNilai]);
+        rupiahMap[bd] = (rupiahMap[bd] || 0) + Rp;
+        grandTotalRupiah += Rp;
+      });
+
+      const totalCalc = grandTotalRupiah || 1;
+      let sortedEntries = Object.entries(rupiahMap).sort((a,b)=>b[1]-a[1]);
+
+      let segHtml = '', legHtml = '';
+      sortedEntries.forEach(([st, RpVal], idx) => {
+        const pct = (RpVal / totalCalc * 100);
+        const color = palette[idx % palette.length];
+        segHtml += `<div class="busbar-seg" style="width:${pct}%;background:${color}" title="${escapeAttr(st)}: Rp ${RpVal.toLocaleString('id-ID')} (${pct.toFixed(1)}%)"></div>`;
+        legHtml += `<div class="busbar-legend-item"><span class="busbar-legend-dot" style="background:${color}"></span>${escapeHtml(st)} <b>Rp ${formatRupiahShort(RpVal)}</b> (${pct.toFixed(1)}%)</div>`;
+      });
+
+      track.innerHTML = segHtml;
+      legend.innerHTML = legHtml;
+
+    } else if(currentTab === "db_Paket AI 2026"){
+      document.getElementById('busbarTitle').textContent = `Busbar Diagram Track — Proporsi Nilai Rupiah (Nilai SKKI) [${keyCol}]`;
+      const cNilaiSkki = findCol(sample, ['NILAI SKKI', 'SKKI', 'NILAI']);
+
+      const rupiahMap = {};
+      let grandTotalRupiah = 0;
+
+      rows.forEach(r => {
+        const bd = r[keyCol] || 'Unspecified';
+        const Rp = parseRupiah(r[cNilaiSkki]);
         rupiahMap[bd] = (rupiahMap[bd] || 0) + Rp;
         grandTotalRupiah += Rp;
       });
@@ -1153,22 +1217,34 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
       const cGi = findCol(sample, ['GI', 'GARDU INDUK']);
       const cUltg = findCol(sample, ['ULTG']);
-      const cAhi = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
+      const cAhiValidasi = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
       const cPeralatan = findCol(sample, ['PERALATAN', 'BAY', 'EQUIPMENT']);
 
       const giKrit = {};
-      rows.filter(r => (r[cAhi]||'').toUpperCase().includes('KRITIKAL') || (r[cAhi]||'').toUpperCase().includes('POOR')).forEach(r => {
+      rows.filter(r => {
+        const val = (r[cAhiValidasi] || '').toUpperCase();
+        return val.includes('KRITIKAL') || val.includes('CRITICAL');
+      }).forEach(r => {
         if(r[cGi]) giKrit[r[cGi]] = (giKrit[r[cGi]]||0)+1;
       });
       const giArr = Object.entries(giKrit).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
       drawBar('c1', giArr, {horizontal: true, color: '#f0546b', unit: 'Kritikal'});
 
-      const ultgCounts = {}; rows.forEach(r => { if(r[cUltg]) ultgCounts[r[cUltg]] = (ultgCounts[r[cUltg]]||0)+1; });
-      const ultgArr = Object.entries(ultgCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
-      drawBar('c2', ultgArr, {horizontal: false, color: '#4c8dff', unit: 'Unit'});
+      const ultgKrit = {};
+      rows.filter(r => {
+        const val = (r[cAhiValidasi] || '').toUpperCase();
+        return val.includes('KRITIKAL') || val.includes('CRITICAL');
+      }).forEach(r => {
+        if(r[cUltg]) ultgKrit[r[cUltg]] = (ultgKrit[r[cUltg]]||0)+1;
+      });
+      const ultgArr = Object.entries(ultgKrit).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c2', ultgArr, {horizontal: false, color: '#4c8dff', unit: 'Kritikal'});
 
       const eqKrit = {};
-      rows.filter(r => (r[cAhi]||'').toUpperCase().includes('KRITIKAL') || (r[cAhi]||'').toUpperCase().includes('POOR')).forEach(r => {
+      rows.filter(r => {
+        const val = (r[cAhiValidasi] || '').toUpperCase();
+        return val.includes('KRITIKAL') || val.includes('CRITICAL');
+      }).forEach(r => {
         if(r[cPeralatan]) eqKrit[r[cPeralatan]] = (eqKrit[r[cPeralatan]]||0)+1;
       });
       const eqArr = Object.entries(eqKrit).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([label,value])=>({label,value}));
@@ -1333,20 +1409,20 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
     } else if(currentTab === "db_Paket AI 2026"){
       container.innerHTML = `
-        <div class="chart-card"><div class="chart-title"><span>Top Rank Nilai Rupiah (Nilai Pagu) per Grup</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Top Rank Nilai Rupiah (Nilai SKKI) per Grup</span></div><canvas id="c1" height="220"></canvas></div>
         <div class="chart-card"><div class="chart-title"><span>Progress / Sebaran per Proses SKKI</span></div><canvas id="c2" height="220"></canvas></div>
         <div class="chart-card"><div class="chart-title"><span>Distribusi Proker per Grup</span></div><canvas id="c3" height="220"></canvas></div>
       `;
 
       const cGrup = findCol(sample, ['GRUP', 'GROUP']);
-      const cNilai = findCol(sample, ['NILAI PAGU', 'NILAI KONTRAK', 'NILAI', 'PAGU']);
+      const cNilaiSkki = findCol(sample, ['NILAI SKKI', 'SKKI', 'NILAI']);
       const cSkki = findCol(sample, ['PROSES SKKI', 'SKKI']);
       const cProker = findCol(sample, ['PROKER', 'PROGRAM KERJA']);
 
       const grupRupiah = {};
       rows.forEach(r => {
         const g = r[cGrup] || 'Lainnya';
-        grupRupiah[g] = (grupRupiah[g] || 0) + parseRupiah(r[cNilai]);
+        grupRupiah[g] = (grupRupiah[g] || 0) + parseRupiah(r[cNilaiSkki]);
       });
       const grupRupiahArr = Object.entries(grupRupiah).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value: Math.round(value / 1e6)}));
       drawBar('c1', grupRupiahArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp'});
@@ -1574,6 +1650,11 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       validCols = cols.filter(c => {
         const name = c.toUpperCase().trim();
         return name !== 'PIC' && name !== 'NILAI PAGU';
+      });
+    } else if(currentTab === "db_MTU_AHI"){
+      validCols = cols.filter(c => {
+        const name = c.toUpperCase().trim();
+        return name !== 'IDEQP' && name !== 'IDLOC';
       });
     }
 
