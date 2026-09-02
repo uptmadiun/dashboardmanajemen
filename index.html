@@ -318,7 +318,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       <div>
         <div class="eyebrow">Sistem Pemantauan Operational & Asset Health — UPT Madiun</div>
         <h1 id="tabMainTitle">Executive Integrated Dashboard</h1>
-        <div class="subtitle" id="tabMainSub">Platform Analitik Terpadu Monitoring Anomali Peralatan, Asset Health Index (AHI) MTU, Kerapatan Petir, ABO/CE, dan Proker AO 53.</div>
+        <div class="subtitle" id="tabMainSub">Platform Analitik Terpadu Monitoring Anomali Peralatan, Asset Health Index (AHI) MTU, Kerapatan Petir, ABO/CE, Proker AO 53, Paket AI 2026, dan Gangguan Sistem.</div>
       </div>
       <div class="header-right">
         <div class="header-actions">
@@ -337,6 +337,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       <div class="nav-tab" data-sheet="db_ABO/CE">📋 Dashboard ABO CE <span class="badge-count" id="cnt_db_ABO/CE">0</span></div>
       <div class="nav-tab" data-sheet="db_Proker AO 53">💼 Dashboard Proker AO 53 <span class="badge-count" id="cnt_db_Proker AO 53">0</span></div>
       <div class="nav-tab" data-sheet="db_Paket AI 2026">🤖 Dashboard Paket AI 2026 <span class="badge-count" id="cnt_db_Paket AI 2026">0</span></div>
+      <div class="nav-tab" data-sheet="db_Gangguan">⚡ Dashboard Gangguan <span class="badge-count" id="cnt_db_Gangguan">0</span></div>
     </div>
 
     <!-- LIVE STATUS -->
@@ -491,9 +492,9 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
   initAutoTheme();
 
-  // KONFIGURASI SUMBER DATA (6 SHEET)
+  // KONFIGURASI SUMBER DATA (7 SHEET)
   const SPREADSHEET_ID = "19CyuyeotdB8nfM0vdpcCNqCOMccDjhCyeBjW3k7Cc50";
-  const SHEETS = ["db_Anomali", "db_MTU_AHI", "db_Kerapatan_Petir", "db_ABO/CE", "db_Proker AO 53", "db_Paket AI 2026"];
+  const SHEETS = ["db_Anomali", "db_MTU_AHI", "db_Kerapatan_Petir", "db_ABO/CE", "db_Proker AO 53", "db_Paket AI 2026", "db_Gangguan"];
 
   let RAW_SHEET_DATA = {};
   let currentTab = "db_Anomali";
@@ -506,7 +507,8 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     db_Kerapatan_Petir: { penghantar:'', tegangan:'', tower:'', month:'', minArus:null, search:'', sortKey:'', sortDir:'desc', page:1 },
     "db_ABO/CE": { ultg:'', bidang:'', program:'', anomali:'', status:'', search:'', sortKey:'', sortDir:'desc', page:1 },
     "db_Proker AO 53": { bidang:'', mitigasi:'', statusKontrak:'', sifatPek:'', search:'', sortKey:'', sortDir:'desc', page:1 },
-    "db_Paket AI 2026": { grup:'', proker:'', prosesSkki:'', search:'', sortKey:'', sortDir:'desc', page:1 }
+    "db_Paket AI 2026": { grup:'', proker:'', prosesSkki:'', search:'', sortKey:'', sortDir:'desc', page:1 },
+    db_Gangguan: { ultg:'', gardu:'', namaBay:'', kategori:'', sebab:'', kondisi:'', bay:'', tahun:'', startDate:'', endDate:'', search:'', sortKey:'', sortDir:'desc', page:1 }
   };
 
   function setLiveStatus(mode, text){
@@ -658,7 +660,8 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       currentTab === "db_MTU_AHI" ? "Dashboard Asset Health Index (AHI) MTU" :
       currentTab === "db_Kerapatan_Petir" ? "Dashboard Kerapatan Sambaran Petir Transmisi" :
       currentTab === "db_ABO/CE" ? "Dashboard Monitoring ABO & CE" :
-      currentTab === "db_Proker AO 53" ? "Dashboard Program Kerja AO 53" : "Dashboard Paket AI 2026";
+      currentTab === "db_Proker AO 53" ? "Dashboard Program Kerja AO 53" :
+      currentTab === "db_Paket AI 2026" ? "Dashboard Paket AI 2026" : "Dashboard Monitoring Gangguan Sistem";
 
     document.getElementById('headerMeta').innerHTML = `
       <div>Total Data Master: <b>${dataObj.rows.length.toLocaleString('id-ID')}</b> Baris</div>
@@ -797,6 +800,28 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>Proker</label><select id="f_proker"><option value="">Semua Proker</option>${uniqVals(rows, colProker).map(v=>`<option value="${escapeAttr(v)}" ${st.proker===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Proses SKKI</label><select id="f_prosesSkki"><option value="">Semua Proses SKKI</option>${uniqVals(rows, colSkki).map(v=>`<option value="${escapeAttr(v)}" ${st.prosesSkki===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
       `;
+    } else if(currentTab === "db_Gangguan"){
+      const colUltg = findCol(rows[0], ['ULTG']);
+      const colGardu = findCol(rows[0], ['GARDU', 'GI', 'GARDU INDUK']);
+      const colNamaBay = findCol(rows[0], ['NAMA BAY', 'BAY']);
+      const colKategori = findCol(rows[0], ['KATEGORI', 'KATEGORI GANGGUAN']);
+      const colSebab = findCol(rows[0], ['SEBAB', 'PENYEBAB']);
+      const colKondisi = findCol(rows[0], ['KONDISI']);
+      const colBay = findCol(rows[0], ['BAY']);
+      const colTahun = findCol(rows[0], ['TAHUN']);
+
+      html = `
+        <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Gardu</label><select id="f_gardu"><option value="">Semua Gardu</option>${uniqVals(rows, colGardu).map(v=>`<option value="${escapeAttr(v)}" ${st.gardu===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Nama Bay</label><select id="f_namaBay"><option value="">Semua Nama Bay</option>${uniqVals(rows, colNamaBay).map(v=>`<option value="${escapeAttr(v)}" ${st.namaBay===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Kategori</label><select id="f_kategori"><option value="">Semua Kategori</option>${uniqVals(rows, colKategori).map(v=>`<option value="${escapeAttr(v)}" ${st.kategori===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Sebab</label><select id="f_sebab"><option value="">Semua Sebab</option>${uniqVals(rows, colSebab).map(v=>`<option value="${escapeAttr(v)}" ${st.sebab===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Kondisi</label><select id="f_kondisi"><option value="">Semua Kondisi</option>${uniqVals(rows, colKondisi).map(v=>`<option value="${escapeAttr(v)}" ${st.kondisi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>BAY</label><select id="f_bay"><option value="">Semua BAY</option>${uniqVals(rows, colBay).map(v=>`<option value="${escapeAttr(v)}" ${st.bay===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Tahun</label><select id="f_tahun"><option value="">Semua Tahun</option>${uniqVals(rows, colTahun).map(v=>`<option value="${escapeAttr(v)}" ${st.tahun===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Dari Tanggal</label><input type="date" id="f_startDate" value="${st.startDate||''}"></div>
+        <div class="field"><label>Sampai Tanggal</label><input type="date" id="f_endDate" value="${st.endDate||''}"></div>
+      `;
     }
 
     grid.innerHTML = html;
@@ -804,6 +829,15 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     grid.querySelectorAll('select').forEach(sel => {
       sel.addEventListener('change', e => {
         const key = sel.id.replace('f_', '');
+        st[key] = e.target.value;
+        st.page = 1;
+        renderDashboard();
+      });
+    });
+
+    grid.querySelectorAll('input[type="date"]').forEach(inp => {
+      inp.addEventListener('change', e => {
+        const key = inp.id.replace('f_', '');
         st[key] = e.target.value;
         st.page = 1;
         renderDashboard();
@@ -828,7 +862,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     };
 
     document.getElementById('resetBtn').onclick = () => {
-      tabStates[currentTab] = { search:'', sortKey:'', sortDir:'desc', page:1, minArus:null };
+      tabStates[currentTab] = { search:'', sortKey:'', sortDir:'desc', page:1, minArus:null, startDate:'', endDate:'', tahun:'' };
       renderDashboard();
     };
   }
@@ -903,6 +937,39 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         if(st.grup && r[cG] !== st.grup) return false;
         if(st.proker && r[cP] !== st.proker) return false;
         if(st.prosesSkki && r[cS] !== st.prosesSkki) return false;
+      } else if(currentTab === "db_Gangguan"){
+        const cU = findCol(sample, ['ULTG']), cG = findCol(sample, ['GARDU', 'GI', 'GARDU INDUK']);
+        const cNB = findCol(sample, ['NAMA BAY', 'BAY']), cK = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN']);
+        const cS = findCol(sample, ['SEBAB', 'PENYEBAB']), cKo = findCol(sample, ['KONDISI']), cBy = findCol(sample, ['BAY']);
+        const cTh = findCol(sample, ['TAHUN']);
+        const cTgl = findCol(sample, ['TANGGAL', 'DATE', 'JAM KELUAR', 'JAM']);
+
+        if(st.ultg && r[cU] !== st.ultg) return false;
+        if(st.gardu && r[cG] !== st.gardu) return false;
+        if(st.namaBay && r[cNB] !== st.namaBay) return false;
+        if(st.kategori && r[cK] !== st.kategori) return false;
+        if(st.sebab && r[cS] !== st.sebab) return false;
+        if(st.kondisi && r[cKo] !== st.kondisi) return false;
+        if(st.bay && r[cBy] !== st.bay) return false;
+        if(st.tahun && r[cTh] !== st.tahun) return false;
+
+        if((st.startDate || st.endDate) && cTgl){
+          const valDateStr = String(r[cTgl] || '');
+          const m = valDateStr.match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/) || valDateStr.match(/(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
+          if(m){
+            let y, mo, d;
+            if(m[1].length === 4){
+              y = m[1]; mo = m[2]; d = m[3];
+            } else {
+              d = m[1]; mo = m[2]; y = m[3].length === 2 ? '20' + m[3] : m[3];
+            }
+            const rowDate = new Date(`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+            if(!isNaN(rowDate)){
+              if(st.startDate && rowDate < new Date(st.startDate)) return false;
+              if(st.endDate && rowDate > new Date(st.endDate + 'T23:59:59')) return false;
+            }
+          }
+        }
       }
 
       if(st.search){
@@ -1042,6 +1109,22 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         {label: 'TRANSMISI', value: sTransmisi.count, sub: 'Grup Transmisi', color: 'var(--blue)', rupiah: formatRupiahShort(sTransmisi.sumRp) + ' Rp'},
         {label: 'SARANA PENDUKUNG', value: sSarana.count, sub: 'Grup Sarana', color: 'var(--grey)', rupiah: formatRupiahShort(sSarana.sumRp) + ' Rp'}
       ];
+    } else if(currentTab === "db_Gangguan"){
+      const cKategori = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN']);
+      const countKat = keyword => rows.filter(r => (r[cKategori]||'').toUpperCase().includes(keyword.toUpperCase())).length;
+      const countExactKat = exactVal => rows.filter(r => (r[cKategori]||'').toUpperCase() === exactVal.toUpperCase()).length;
+
+      kpis = [
+        {label: 'Total Gangguan', value: total, sub: 'Total Data Terfilter', color: 'var(--blue)'},
+        {label: 'Distribusi', value: countKat('DISTRIBUSI'), sub: 'Gangguan Distribusi', color: 'var(--teal)'},
+        {label: 'Pihak Lain (APPL)', value: countExactKat('AKIBAT PEKERJAAN PIHAK LAIN (APPL)'), sub: 'Pekerjaan Pihak Lain', color: 'var(--amber)'},
+        {label: 'Alam', value: countExactKat('ALAM'), sub: 'Faktor Alam', color: 'var(--purple)'},
+        {label: 'Pembangkit', value: countKat('PEMBANGKIT'), sub: 'Gangguan Pembangkit', color: 'var(--red)'},
+        {label: 'Benda Lain', value: countExactKat('BENDA LAIN'), sub: 'Pohon / Benang / Lain', color: 'var(--amber)'},
+        {label: 'Alat', value: countExactKat('ALAT'), sub: 'Kerusakan Alat', color: 'var(--blue)'},
+        {label: 'Binatang', value: countExactKat('BINATANG'), sub: 'Gangguan Binatang', color: 'var(--red)'},
+        {label: 'Masa Garansi', value: countKat('GARANSI'), sub: 'Masih Masa Garansi', color: 'var(--teal)'}
+      ];
     }
 
     container.innerHTML = kpis.map(k=>`
@@ -1071,6 +1154,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     else if(currentTab === "db_ABO/CE") keyCol = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
     else if(currentTab === "db_Proker AO 53") keyCol = findCol(sample, ['BIDANG']);
     else if(currentTab === "db_Paket AI 2026") keyCol = findCol(sample, ['GRUP', 'GROUP']);
+    else if(currentTab === "db_Gangguan") keyCol = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN', 'SEBAB']);
 
     if(!keyCol){
       document.getElementById('busbarCard').style.display = 'none';
@@ -1137,7 +1221,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       legend.innerHTML = legHtml;
 
     } else {
-      document.getElementById('busbarTitle').textContent = `Busbar Visualizer Track — Proporsi [${keyCol}]`;
+      document.getElementById('busbarTitle').textContent = currentTab === "db_Gangguan" ? `Single-Line Diagram Track — Proporsi Kategori Gangguan [${keyCol}]` : `Busbar Visualizer Track — Proporsi [${keyCol}]`;
 
       const counts = {};
       rows.forEach(r => {
@@ -1442,6 +1526,52 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       });
       const grupArr = Object.entries(grupCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
       drawBar('c3', grupArr, {horizontal: false, color: '#f5a623', unit: 'Proker'});
+
+    } else if(currentTab === "db_Gangguan"){
+      container.innerHTML = `
+        <div class="chart-card"><div class="chart-title"><span>Top 10 Gardu Paling Banyak Gangguan</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Rank Kategori Gangguan</span></div><canvas id="c2" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Gangguan Bay Line Berdasarkan Masing-Masing Kategori</span></div><canvas id="c3" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Gangguan Bay Trafo Berdasarkan Masing-Masing Kategori</span></div><canvas id="c4" height="220"></canvas></div>
+      `;
+
+      const cGardu = findCol(sample, ['GARDU', 'GI', 'GARDU INDUK']);
+      const cKategori = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN']);
+      const cBay = findCol(sample, ['BAY']);
+
+      // 1. Top 10 Gardu
+      const garduCounts = {}; rows.forEach(r => { if(r[cGardu]) garduCounts[r[cGardu]] = (garduCounts[r[cGardu]]||0)+1; });
+      const garduArr = Object.entries(garduCounts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label, value}));
+      drawBar('c1', garduArr, {horizontal: true, color: '#f0546b', unit: 'Gangguan'});
+
+      // 2. Rank Kategori
+      const katCounts = {}; rows.forEach(r => { if(r[cKategori]) katCounts[r[cKategori]] = (katCounts[r[cKategori]]||0)+1; });
+      const katArr = Object.entries(katCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value}));
+      drawBar('c2', katArr, {horizontal: false, color: '#4c8dff', unit: 'Gangguan'});
+
+      // 3. Gangguan Bay Line per Kategori
+      const lineKatCounts = {}; 
+      rows.filter(r => {
+        const b = (r[cBay] || '').toUpperCase();
+        return b.includes('LINE') || b.includes('PHT') || b.includes('JARINGAN');
+      }).forEach(r => {
+        const cat = r[cKategori] || 'Lainnya';
+        lineKatCounts[cat] = (lineKatCounts[cat] || 0) + 1;
+      });
+      const lineKatArr = Object.entries(lineKatCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value}));
+      drawBar('c3', lineKatArr, {horizontal: false, color: '#2bd9ab', unit: 'Gangguan'});
+
+      // 4. Gangguan Bay Trafo per Kategori
+      const trafoKatCounts = {}; 
+      rows.filter(r => {
+        const b = (r[cBay] || '').toUpperCase();
+        return b.includes('TRAFO') || b.includes('TR') || b.includes('TRANSFORMATOR');
+      }).forEach(r => {
+        const cat = r[cKategori] || 'Lainnya';
+        trafoKatCounts[cat] = (trafoKatCounts[cat] || 0) + 1;
+      });
+      const trafoKatArr = Object.entries(trafoKatCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value}));
+      drawBar('c4', trafoKatArr, {horizontal: false, color: '#f5a623', unit: 'Gangguan'});
     }
   }
 
@@ -1507,7 +1637,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       };
 
     } else {
-      const padLeft = 30, padRight = 20, padBottom = 30, padTop = 20;
+      const padLeft = 30, padRight = 20, padBottom = 45, padTop = 20;
       const barAreaW = cssWidth - padLeft - padRight;
       const gap = barAreaW / items.length;
       const barW = Math.min(32, gap * 0.6);
@@ -1524,8 +1654,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         ctx.fillStyle = textHiColor; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
         ctx.fillText(it.value, x + barW/2, y - 5);
 
-        ctx.fillStyle = textColor; ctx.font = '10px IBM Plex Sans';
-        ctx.fillText(it.label.length > 10 ? it.label.slice(0, 9) + '…' : it.label, x + barW/2, cssHeight - 10);
+        ctx.save();
+        ctx.fillStyle = textColor; ctx.font = '9.5px IBM Plex Sans';
+        ctx.translate(x + barW/2, cssHeight - 35);
+        ctx.rotate(-Math.PI / 6);
+        ctx.textAlign = 'right';
+        ctx.fillText(it.label, 0, 0);
+        ctx.restore();
       });
 
       canvas.onmousemove = function(e){
@@ -1656,9 +1791,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         const name = c.toUpperCase().trim();
         return name !== 'IDEQP' && name !== 'IDLOC';
       });
+    } else if(currentTab === "db_Gangguan"){
+      const reqCols = ['TAHUN', 'JAM KELUAR', 'ULTG', 'GARDU', 'NAMA BAY', 'KATEGORI', 'SEBAB', 'KONDISI', 'MAIN', 'NON SYSTEM FAULT'];
+      validCols = cols.filter(c => reqCols.some(rc => c.toUpperCase().includes(rc)));
+      if(validCols.length === 0) validCols = cols;
     }
 
-    const displayCols = validCols.slice(0, 9);
+    const displayCols = validCols.slice(0, 10);
 
     let sortedRows = [...rows];
     if(st.sortKey){
