@@ -209,6 +209,70 @@ h1{font-size:26px;margin:0 0 4px;font-weight:700;letter-spacing:-0.01em;}
   outline:none;transition:border-color .15s ease;
 }
 .field select:focus, .field input:focus{border-color:var(--blue);}
+
+/* CUSTOM MULTI-SELECT DROPDOWN STYLING */
+.custom-multiselect {
+  position: relative;
+  width: 100%;
+}
+.multiselect-btn {
+  width: 100%;
+  background: var(--bg-1);
+  border: 1px solid var(--panel-border-soft);
+  color: var(--text-hi);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-family: var(--sans);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  outline: none;
+  transition: border-color .15s ease;
+}
+.multiselect-btn:hover, .multiselect-btn.open {
+  border-color: var(--blue);
+}
+.multiselect-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  display: none;
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 6px;
+}
+.multiselect-dropdown.show {
+  display: block;
+}
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text-mid);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background .1s ease, color .1s ease;
+}
+.multiselect-option:hover {
+  background: var(--bg-2);
+  color: var(--text-hi);
+}
+.multiselect-option input {
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
 .search-row{display:flex;gap:10px;align-items:center;}
 .search-row .field{flex:1;}
 
@@ -502,13 +566,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
   let currentFetchIndex = 0;
 
   let tabStates = {
-    db_Anomali: { ultg:'', gi:'', bidang:'', status:'', pelaksana:'', anggaran:'', tahun:'', jenis:'', search:'', sortKey:'', sortDir:'desc', page:1 },
+    db_Anomali: { ultg:'', gi:'', bidang:'', status:'', pelaksana:'', anggaran:'', tahun:[], jenis:'', search:'', sortKey:'', sortDir:'desc', page:1 },
     db_MTU_AHI: { ultg:'', gi:'', peralatan:'', ahi:'', search:'', sortKey:'', sortDir:'desc', page:1 },
-    db_Kerapatan_Petir: { penghantar:'', tegangan:'', tower:'', month:'', minArus:null, search:'', sortKey:'', sortDir:'desc', page:1 },
+    db_Kerapatan_Petir: { penghantar:'', tegangan:'', tower:'', tahun:[], month:'', minArus:null, search:'', sortKey:'', sortDir:'desc', page:1 },
     "db_ABO/CE": { ultg:'', bidang:'', program:'', anomali:'', status:'', search:'', sortKey:'', sortDir:'desc', page:1 },
     "db_Proker AO 53": { bidang:'', mitigasi:'', statusKontrak:'', sifatPek:'', search:'', sortKey:'', sortDir:'desc', page:1 },
     "db_Paket AI 2026": { grup:'', proker:'', prosesSkki:'', search:'', sortKey:'', sortDir:'desc', page:1 },
-    db_Gangguan: { ultg:'', gardu:'', namaBay:'', kategori:'', sebab:'', kondisi:'', bay:'', tahun:'', startDate:'', endDate:'', search:'', sortKey:'', sortDir:'desc', page:1 }
+    db_Gangguan: { ultg:'', gardu:'', namaBay:'', kategori:'', sebab:'', kondisi:'', bay:'', tahun:[], startDate:'', endDate:'', search:'', sortKey:'', sortDir:'desc', page:1 }
   };
 
   function setLiveStatus(mode, text){
@@ -692,6 +756,43 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
     let html = '';
 
+    const makeCustomMultiYearHtml = (rowsPool, currentSelectedArr) => {
+      const colTahun = findCol(rowsPool[0], ['TAHUN', 'YEAR']);
+      if(!colTahun) return '';
+      const allYears = uniqVals(rowsPool, colTahun);
+      if(allYears.length === 0) return '';
+
+      let displayText = "Semua Tahun";
+      if(currentSelectedArr && currentSelectedArr.length > 0){
+        displayText = currentSelectedArr.length === 1 ? currentSelectedArr[0] : `${currentSelectedArr.length} Tahun Dipilih`;
+      }
+
+      let optionsHtml = allYears.map(yr => {
+        const checked = currentSelectedArr.includes(yr) ? 'checked' : '';
+        return `
+          <label class="multiselect-option">
+            <input type="checkbox" value="${escapeAttr(yr)}" ${checked}>
+            <span>${escapeHtml(yr)}</span>
+          </label>
+        `;
+      }).join('');
+
+      return `
+        <div class="field">
+          <label>Tahun (Multi-Select)</label>
+          <div class="custom-multiselect" id="customMultiYear">
+            <button type="button" class="multiselect-btn" id="multiYearBtn">
+              <span>${escapeHtml(displayText)}</span>
+              <span>▼</span>
+            </button>
+            <div class="multiselect-dropdown" id="multiYearDropdown">
+              ${optionsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
     if(currentTab === "db_Anomali"){
       const colUltg = findCol(rows[0], ['ULTG']);
       const colGi = findCol(rows[0], ['GI', 'GARDU INDUK']);
@@ -699,7 +800,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const colStatus = findCol(rows[0], ['STATUS LKS', 'STATUS']);
       const colPelaksana = findCol(rows[0], ['PELAKSANA']);
       const colAnggaran = findCol(rows[0], ['STATUS ANGGARAN', 'ANGGARAN']);
-      const colTahun = findCol(rows[0], ['TAHUN']);
       const colJenis = findCol(rows[0], ['JENIS', 'ANOMALI']);
 
       let giPool = rows;
@@ -712,8 +812,8 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>Status LKS</label><select id="f_status"><option value="">Semua Status</option>${uniqVals(rows, colStatus).map(v=>`<option value="${escapeAttr(v)}" ${st.status===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Pelaksana</label><select id="f_pelaksana"><option value="">Semua Pelaksana</option>${uniqVals(rows, colPelaksana).map(v=>`<option value="${escapeAttr(v)}" ${st.pelaksana===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Status Anggaran</label><select id="f_anggaran"><option value="">Semua Status Anggaran</option>${uniqVals(rows, colAnggaran).map(v=>`<option value="${escapeAttr(v)}" ${st.anggaran===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Tahun</label><select id="f_tahun"><option value="">Semua Tahun</option>${uniqVals(rows, colTahun).map(v=>`<option value="${escapeAttr(v)}" ${st.tahun===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Anomali</label><select id="f_jenis"><option value="">Semua Anomali</option>${uniqVals(rows, colJenis).map(v=>`<option value="${escapeAttr(v)}" ${st.jenis===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        ${makeCustomMultiYearHtml(rows, st.tahun)}
       `;
     } else if(currentTab === "db_MTU_AHI"){
       const colUltg = findCol(rows[0], ['ULTG']);
@@ -762,12 +862,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
             <span class="slider-val" id="f_minArusVal">${st.minArus} kA</span>
           </div>
         </div>
+        ${makeCustomMultiYearHtml(rows, st.tahun)}
       `;
     } else if(currentTab === "db_ABO/CE"){
       const cols = dataObj.cols;
       const colUltg = getColByLetter(cols, 'B') || findCol(rows[0], ['ULTG']);
       const colBidang = getColByLetter(cols, 'O') || findCol(rows[0], ['BIDANG']);
-      const colProgram = findCol(rows[0], ['PROGRAM KERJA', 'PROGRAM', 'PEKERJAAN']);
+      const colProgram = findCol(rows[0], ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
       const colAnomali = getColByLetter(cols, 'N') || findCol(rows[0], ['JENIS ANOMALI', 'ANOMALI']);
       const colStatus = getColByLetter(cols, 'L') || findCol(rows[0], ['STATUS REALISASI', 'REALISASI', 'STATUS']);
 
@@ -808,7 +909,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const colSebab = findCol(rows[0], ['SEBAB', 'PENYEBAB']);
       const colKondisi = findCol(rows[0], ['KONDISI']);
       const colBay = findCol(rows[0], ['BAY']);
-      const colTahun = findCol(rows[0], ['TAHUN']);
 
       html = `
         <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
@@ -818,15 +918,15 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>Sebab</label><select id="f_sebab"><option value="">Semua Sebab</option>${uniqVals(rows, colSebab).map(v=>`<option value="${escapeAttr(v)}" ${st.sebab===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Kondisi</label><select id="f_kondisi"><option value="">Semua Kondisi</option>${uniqVals(rows, colKondisi).map(v=>`<option value="${escapeAttr(v)}" ${st.kondisi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>BAY</label><select id="f_bay"><option value="">Semua BAY</option>${uniqVals(rows, colBay).map(v=>`<option value="${escapeAttr(v)}" ${st.bay===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Tahun</label><select id="f_tahun"><option value="">Semua Tahun</option>${uniqVals(rows, colTahun).map(v=>`<option value="${escapeAttr(v)}" ${st.tahun===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Dari Tanggal</label><input type="date" id="f_startDate" value="${st.startDate||''}"></div>
         <div class="field"><label>Sampai Tanggal</label><input type="date" id="f_endDate" value="${st.endDate||''}"></div>
+        ${makeCustomMultiYearHtml(rows, st.tahun)}
       `;
     }
 
     grid.innerHTML = html;
 
-    grid.querySelectorAll('select').forEach(sel => {
+    grid.querySelectorAll('select:not([multiple])').forEach(sel => {
       sel.addEventListener('change', e => {
         const key = sel.id.replace('f_', '');
         st[key] = e.target.value;
@@ -843,6 +943,33 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         renderDashboard();
       });
     });
+
+    const multiBtn = document.getElementById('multiYearBtn');
+    const multiDropdown = document.getElementById('multiYearDropdown');
+    if(multiBtn && multiDropdown){
+      multiBtn.onclick = (e) => {
+        e.stopPropagation();
+        multiDropdown.classList.toggle('show');
+        multiBtn.classList.toggle('open');
+      };
+
+      document.addEventListener('click', (e) => {
+        const container = document.getElementById('customMultiYear');
+        if(container && !container.contains(e.target)){
+          multiDropdown.classList.remove('show');
+          multiBtn.classList.remove('open');
+        }
+      });
+
+      multiDropdown.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+        chk.onchange = () => {
+          const checkedBoxes = multiDropdown.querySelectorAll('input[type="checkbox"]:checked');
+          st.tahun = Array.from(checkedBoxes).map(cb => cb.value);
+          st.page = 1;
+          renderDashboard();
+        };
+      });
+    }
 
     const rangeInput = document.getElementById('f_minArus');
     if(rangeInput){
@@ -862,7 +989,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     };
 
     document.getElementById('resetBtn').onclick = () => {
-      tabStates[currentTab] = { search:'', sortKey:'', sortDir:'desc', page:1, minArus:null, startDate:'', endDate:'', tahun:'' };
+      tabStates[currentTab] = { search:'', sortKey:'', sortDir:'desc', page:1, minArus:null, startDate:'', endDate:'', tahun:[] };
       renderDashboard();
     };
   }
@@ -876,7 +1003,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       if(currentTab === "db_Anomali"){
         const cU = findCol(sample, ['ULTG']), cG = findCol(sample, ['GI', 'GARDU INDUK']), cB = findCol(sample, ['BIDANG']);
         const cS = findCol(sample, ['STATUS LKS', 'STATUS']), cP = findCol(sample, ['PELAKSANA']), cA = findCol(sample, ['STATUS ANGGARAN', 'ANGGARAN']);
-        const cT = findCol(sample, ['TAHUN']), cJ = findCol(sample, ['JENIS', 'ANOMALI']);
+        const cT = findCol(sample, ['TAHUN', 'YEAR']), cJ = findCol(sample, ['JENIS', 'ANOMALI']);
 
         if(st.ultg && r[cU] !== st.ultg) return false;
         if(st.gi && r[cG] !== st.gi) return false;
@@ -884,8 +1011,8 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         if(st.status && r[cS] !== st.status) return false;
         if(st.pelaksana && r[cP] !== st.pelaksana) return false;
         if(st.anggaran && r[cA] !== st.anggaran) return false;
-        if(st.tahun && r[cT] !== st.tahun) return false;
         if(st.jenis && r[cJ] !== st.jenis) return false;
+        if(st.tahun && st.tahun.length > 0 && (!cT || !st.tahun.includes(r[cT]))) return false;
       } else if(currentTab === "db_MTU_AHI"){
         const cU = findCol(sample, ['ULTG']), cG = findCol(sample, ['GI', 'GARDU INDUK']);
         const cP = findCol(sample, ['PERALATAN', 'BAY', 'EQUIPMENT']), cA = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
@@ -896,13 +1023,14 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         if(st.ahi && r[cA] !== st.ahi) return false;
       } else if(currentTab === "db_Kerapatan_Petir"){
         const cP = findCol(sample, ['PENGHANTAR', 'JALUR', 'SUTT']), cT = findCol(sample, ['LEVEL TEGANGAN', 'TEGANGAN', 'KV']);
-        const cTw = findCol(sample, ['NAMA TOWER', 'TOWER']), cM = findCol(sample, ['MONTH', 'BULAN']);
+        const cTw = findCol(sample, ['NAMA TOWER', 'TOWER']), cY = findCol(sample, ['YEAR', 'TAHUN']), cM = findCol(sample, ['MONTH', 'BULAN']);
         const cArus = findCol(sample, ['BESARAN ARUS', 'ARUS', 'KA', 'AMPERE']);
 
         if(st.penghantar && r[cP] !== st.penghantar) return false;
         if(st.tegangan && r[cT] !== st.tegangan) return false;
         if(st.tower && r[cTw] !== st.tower) return false;
         if(st.month && r[cM] !== st.month) return false;
+        if(st.tahun && st.tahun.length > 0 && (!cY || !st.tahun.includes(r[cY]))) return false;
         if(st.minArus !== null && cArus){
           const valArus = parseFloat((r[cArus]||'').replace(/,/g,'.')) || 0;
           if(valArus < st.minArus) return false;
@@ -910,7 +1038,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       } else if(currentTab === "db_ABO/CE"){
         const cU = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
         const cB = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
-        const cP = findCol(sample, ['PROGRAM KERJA', 'PROGRAM']);
+        const cP = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
         const cA = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI']);
         const cS = getColByLetter(cols, 'L') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
 
@@ -951,7 +1079,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         if(st.sebab && r[cS] !== st.sebab) return false;
         if(st.kondisi && r[cKo] !== st.kondisi) return false;
         if(st.bay && r[cBy] !== st.bay) return false;
-        if(st.tahun && r[cTh] !== st.tahun) return false;
+        if(st.tahun && st.tahun.length > 0 && (!cTh || !st.tahun.includes(r[cTh]))) return false;
 
         if((st.startDate || st.endDate) && cTgl){
           const valDateStr = String(r[cTgl] || '');
@@ -1033,23 +1161,23 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         {label: 'Rata-rata Sambaran', value: (total / (totalPenghantar||1)).toFixed(1), sub: 'Strike / Penghantar', color: 'var(--amber)'}
       ];
     } else if(currentTab === "db_ABO/CE"){
-      const cJenisAnomali = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI']);
+      const cProgram = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
       const cBidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
 
-      const totalABO = rows.filter(r => (r[cJenisAnomali]||'').toUpperCase().includes('ABO')).length;
-      const totalCE = rows.filter(r => (r[cJenisAnomali]||'').toUpperCase().includes('CE')).length;
+      const totalABO = rows.filter(r => (r[cProgram]||'').toUpperCase().includes('ABO')).length;
+      const totalCE = rows.filter(r => (r[cProgram]||'').toUpperCase().includes('CE')).length;
 
       const totalJaringan = rows.filter(r => (r[cBidang]||'').toUpperCase().includes('JARINGAN')).length;
       const totalGI = rows.filter(r => (r[cBidang]||'').toUpperCase().includes('GARDU INDUK') || (r[cBidang]||'').toUpperCase().includes('GI')).length;
       const totalProteksi = rows.filter(r => (r[cBidang]||'').toUpperCase().includes('PROTEKSI')).length;
 
       kpis = [
-        {label: 'Total Item ABO/CE', value: total, sub: 'Total Usulan Program', color: 'var(--blue)'},
-        {label: 'Total ABO', value: totalABO, sub: 'Anomali Breakdown Option', color: 'var(--purple)'},
-        {label: 'Total CE', value: totalCE, sub: 'Corrective Engineering', color: 'var(--amber)'},
-        {label: 'Bidang Jaringan', value: totalJaringan, sub: 'Anomali Jaringan', color: 'var(--blue)'},
-        {label: 'Bidang Gardu Induk', value: totalGI, sub: 'Anomali GI', color: 'var(--teal)'},
-        {label: 'Bidang Proteksi', value: totalProteksi, sub: 'Anomali Proteksi', color: 'var(--red)'}
+        {label: 'TOTAL ITEM ABO/CE', value: total, sub: 'Total Usulan Program', color: 'var(--blue)'},
+        {label: 'TOTAL ABO', value: totalABO, sub: 'Anomali Breakdown Option', color: 'var(--purple)'},
+        {label: 'TOTAL CE', value: totalCE, sub: 'Corrective Engineering', color: 'var(--amber)'},
+        {label: 'BIDANG JARINGAN', value: totalJaringan, sub: 'Anomali Jaringan', color: 'var(--blue)'},
+        {label: 'BIDANG GARDU INDUK', value: totalGI, sub: 'Anomali GI', color: 'var(--teal)'},
+        {label: 'BIDANG PROTEKSI', value: totalProteksi, sub: 'Anomali Proteksi', color: 'var(--red)'}
       ];
     } else if(currentTab === "db_Proker AO 53"){
       const cBidang = findCol(sample, ['BIDANG']);
@@ -1151,7 +1279,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     if(currentTab === "db_Anomali") keyCol = findCol(sample, ['STATUS LKS', 'STATUS']);
     else if(currentTab === "db_MTU_AHI") keyCol = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
     else if(currentTab === "db_Kerapatan_Petir") keyCol = findCol(sample, ['PENGHANTAR', 'JALUR']);
-    else if(currentTab === "db_ABO/CE") keyCol = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+    else if(currentTab === "db_ABO/CE") keyCol = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
     else if(currentTab === "db_Proker AO 53") keyCol = findCol(sample, ['BIDANG']);
     else if(currentTab === "db_Paket AI 2026") keyCol = findCol(sample, ['GRUP', 'GROUP']);
     else if(currentTab === "db_Gangguan") keyCol = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN', 'SEBAB']);
@@ -1221,7 +1349,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       legend.innerHTML = legHtml;
 
     } else {
-      document.getElementById('busbarTitle').textContent = currentTab === "db_Gangguan" ? `Single-Line Diagram Track — Proporsi Kategori Gangguan [${keyCol}]` : `Busbar Visualizer Track — Proporsi [${keyCol}]`;
+      document.getElementById('busbarTitle').textContent = currentTab === "db_ABO/CE" ? `Busbar Visualizer Track — Proporsi Program Kerja [${keyCol}]` : currentTab === "db_Gangguan" ? `Single-Line Diagram Track — Proporsi Kategori Gangguan [${keyCol}]` : `Busbar Visualizer Track — Proporsi [${keyCol}]`;
 
       const counts = {};
       rows.forEach(r => {
@@ -1272,7 +1400,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
       const giCounts = {}; rows.forEach(r => { if(r[cGi]) giCounts[r[cGi]] = (giCounts[r[cGi]]||0)+1; });
       const giArr = Object.entries(giCounts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label: label.replace(/^GI\s*/i,''), value}));
-      drawBar('c1', giArr, {horizontal: true, color: '#4c8dff', unit: 'Anomali'});
+      drawBar('c1', giArr, {horizontal: true, color: '#4c8dff', unit: 'Anomali', padLeft: 180});
 
       const bdCounts = {}; rows.forEach(r => { if(r[cBidang]) bdCounts[r[cBidang]] = (bdCounts[r[cBidang]]||0)+1; });
       const bdArr = Object.entries(bdCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
@@ -1290,7 +1418,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
       const plCounts = {}; rows.forEach(r => { if(r[cPelaksana]) plCounts[r[cPelaksana]] = (plCounts[r[cPelaksana]]||0)+1; });
       const plArr = Object.entries(plCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
-      drawBar('c4', plArr, {horizontal: true, color: '#a855f7', unit: 'Item'});
+      drawBar('c4', plArr, {horizontal: true, color: '#a855f7', unit: 'Item', padLeft: 180});
 
     } else if(currentTab === "db_MTU_AHI"){
       container.innerHTML = `
@@ -1312,7 +1440,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         if(r[cGi]) giKrit[r[cGi]] = (giKrit[r[cGi]]||0)+1;
       });
       const giArr = Object.entries(giKrit).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
-      drawBar('c1', giArr, {horizontal: true, color: '#f0546b', unit: 'Kritikal'});
+      drawBar('c1', giArr, {horizontal: true, color: '#f0546b', unit: 'Kritikal', padLeft: 180});
 
       const ultgKrit = {};
       rows.filter(r => {
@@ -1335,32 +1463,161 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       drawBar('c3', eqArr, {horizontal: false, color: '#a855f7', unit: 'Kritikal'});
 
     } else if(currentTab === "db_Kerapatan_Petir"){
+      const st = tabStates[currentTab];
+      const titleTrend = st.tahun && st.tahun.length === 1 ? `Trend Kali Sambaran per Bulan (Tahun ${st.tahun[0]})` : `Trend Kali Sambaran per Bulan (Multi-Tahun / Semua Tahun)`;
+      
       container.innerHTML = `
         <div class="chart-card"><div class="chart-title"><span>Top 10 Penghantar Paling Banyak Sambaran (Sequence)</span></div><canvas id="c1" height="220"></canvas></div>
-        <div class="chart-card"><div class="chart-title"><span>Penghantar Frekuensi Paling Tinggi Nilai Arus Sambaran (kA)</span></div><canvas id="c2" height="220"></canvas></div>
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>${escapeHtml(titleTrend)}</span>
+            ${(!st.tahun || st.tahun.length === 0) ? `<div style="font-size:10px;color:var(--teal);font-family:var(--mono);">Tip: Pilih filter Tahun di atas untuk melihat spesifik per tahun</div>` : ''}
+          </div>
+          <canvas id="c2" height="220"></canvas>
+        </div>
+        <div class="chart-card"><div class="chart-title"><span>Top 10 Tower — Trend Kali Sambaran (Sequence) Terbanyak</span></div><canvas id="c3" height="260"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Top 10 Tower — Akumulasi Arus Sambaran (kA) Terbanyak</span></div><canvas id="c4" height="260"></canvas></div>
       `;
 
       const cPenghantar = findCol(sample, ['PENGHANTAR', 'JALUR', 'SUTT']);
+      const cTower = findCol(sample, ['NAMA TOWER', 'TOWER', 'NO TOWER']);
       const cArus = findCol(sample, ['BESARAN ARUS', 'ARUS', 'KA']);
+      const cYear = findCol(sample, ['YEAR', 'TAHUN']);
+      const cMonth = findCol(sample, ['MONTH', 'BULAN']);
 
       const seqMap = {}; rows.forEach(r => { if(r[cPenghantar]) seqMap[r[cPenghantar]] = (seqMap[r[cPenghantar]]||0)+1; });
       const seqArr = Object.entries(seqMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
-      drawBar('c1', seqArr, {horizontal: true, color: '#f5a623', unit: 'Sambaran'});
+      drawBar('c1', seqArr, {horizontal: true, color: '#f5a623', unit: 'Sambaran', padLeft: 180});
 
-      const arusMap = {}; rows.forEach(r => {
-        if(r[cPenghantar] && cArus){
-          const val = parseFloat((r[cArus]||'0').replace(/[^0-9.-]/g,'')) || 0;
-          if(!arusMap[r[cPenghantar]] || Math.abs(val) > Math.abs(arusMap[r[cPenghantar]])) arusMap[r[cPenghantar]] = val;
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
+      
+      if(st.tahun && st.tahun.length === 1){
+        const targetYr = st.tahun[0];
+        const monthMap = {};
+        monthNames.forEach(m => monthMap[m] = 0);
+
+        rows.forEach(r => {
+          let mVal = (r[cMonth] || '').toUpperCase().trim();
+          if(!isNaN(mVal) && mVal !== ''){
+            const mNum = parseInt(mVal, 10);
+            if(mNum >= 1 && mNum <= 12) mVal = monthNames[mNum - 1];
+          } else {
+            if(mVal.startsWith('JAN')) mVal = 'JAN';
+            else if(mVal.startsWith('FEB')) mVal = 'FEB';
+            else if(mVal.startsWith('MAR')) mVal = 'MAR';
+            else if(mVal.startsWith('APR')) mVal = 'APR';
+            else if(mVal.startsWith('MEI') || mVal.startsWith('MAY')) mVal = 'MEI';
+            else if(mVal.startsWith('JUN')) mVal = 'JUN';
+            else if(mVal.startsWith('JUL')) mVal = 'JUL';
+            else if(mVal.startsWith('AGU') || mVal.startsWith('AUG')) mVal = 'AGU';
+            else if(mVal.startsWith('SEP')) mVal = 'SEP';
+            else if(mVal.startsWith('OKT') || mVal.startsWith('OCT')) mVal = 'OKT';
+            else if(mVal.startsWith('NOV')) mVal = 'NOV';
+            else if(mVal.startsWith('DES') || mVal.startsWith('DEC')) mVal = 'DES';
+          }
+          if(monthMap[mVal] !== undefined) monthMap[mVal]++;
+        });
+
+        const monthArr = monthNames.map(m => ({ label: m, value: monthMap[m] }));
+        drawBar('c2', monthArr, {horizontal: false, color: '#a855f7', unit: 'Sambaran'});
+
+      } else {
+        const activeYears = (st.tahun && st.tahun.length > 0) ? st.tahun.sort() : [...new Set(rows.map(r => r[cYear]).filter(v => v))].sort();
+        if(activeYears.length === 0){
+          const monthMap = {};
+          monthNames.forEach(m => monthMap[m] = 0);
+          rows.forEach(r => {
+            let mVal = (r[cMonth] || '').toUpperCase().trim();
+            if(!isNaN(mVal) && mVal !== ''){
+              const mNum = parseInt(mVal, 10);
+              if(mNum >= 1 && mNum <= 12) mVal = monthNames[mNum - 1];
+            } else {
+              if(mVal.startsWith('JAN')) mVal = 'JAN';
+              else if(mVal.startsWith('FEB')) mVal = 'FEB';
+              else if(mVal.startsWith('MAR')) mVal = 'MAR';
+              else if(mVal.startsWith('APR')) mVal = 'APR';
+              else if(mVal.startsWith('MEI') || mVal.startsWith('MAY')) mVal = 'MEI';
+              else if(mVal.startsWith('JUN')) mVal = 'JUN';
+              else if(mVal.startsWith('JUL')) mVal = 'JUL';
+              else if(mVal.startsWith('AGU') || mVal.startsWith('AUG')) mVal = 'AGU';
+              else if(mVal.startsWith('SEP')) mVal = 'SEP';
+              else if(mVal.startsWith('OKT') || mVal.startsWith('OCT')) mVal = 'OKT';
+              else if(mVal.startsWith('NOV')) mVal = 'NOV';
+              else if(mVal.startsWith('DES') || mVal.startsWith('DEC')) mVal = 'DES';
+            }
+            if(monthMap[mVal] !== undefined) monthMap[mVal]++;
+          });
+          const monthArr = monthNames.map(m => ({ label: m, value: monthMap[m] }));
+          drawBar('c2', monthArr, {horizontal: false, color: '#a855f7', unit: 'Sambaran'});
+        } else {
+          const yearColors = ['#4c8dff', '#2bd9ab', '#f5a623', '#f0546b', '#a855f7', '#06b6d4'];
+          const groupedData = monthNames.map((mName, mIdx) => {
+            const mNumStr = String(mIdx + 1);
+            const values = activeYears.map((yr, yIdx) => {
+              const count = rows.filter(r => {
+                const rYr = r[cYear];
+                let rMo = (r[cMonth] || '').toUpperCase().trim();
+                if(!isNaN(rMo) && rMo !== ''){
+                  rMo = String(parseInt(rMo, 10));
+                } else {
+                  if(rMo.startsWith('JAN')) rMo = '1';
+                  else if(rMo.startsWith('FEB')) rMo = '2';
+                  else if(rMo.startsWith('MAR')) rMo = '3';
+                  else if(rMo.startsWith('APR')) rMo = '4';
+                  else if(rMo.startsWith('MEI') || rMo.startsWith('MAY')) rMo = '5';
+                  else if(rMo.startsWith('JUN')) rMo = '6';
+                  else if(rMo.startsWith('JUL')) rMo = '7';
+                  else if(rMo.startsWith('AGU') || rMo.startsWith('AUG')) rMo = '8';
+                  else if(rMo.startsWith('SEP')) rMo = '9';
+                  else if(rMo.startsWith('OKT') || rMo.startsWith('OCT')) rMo = '10';
+                  else if(rMo.startsWith('NOV')) rMo = '11';
+                  else if(rMo.startsWith('DES') || rMo.startsWith('DEC')) rMo = '12';
+                }
+                return rYr === yr && (rMo === mNumStr || rMo === mName);
+              }).length;
+
+              return { name: `Tahun ${yr}`, value: count, color: yearColors[yIdx % yearColors.length] };
+            });
+
+            return { label: mName, values };
+          });
+
+          drawGroupedBarMultiYear('c2', groupedData);
         }
-      });
-      const arusArr = Object.entries(arusMap).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,10).map(([label,value])=>({label, value: Math.round(value)}));
-      drawBar('c2', arusArr, {horizontal: false, color: '#a855f7', unit: 'kA'});
+      }
+
+      // Chart 3: Trend Kali Sambaran per Tower
+      if(cTower){
+        const towerSeqMap = {};
+        rows.forEach(r => {
+          const tw = r[cTower];
+          if(tw) towerSeqMap[tw] = (towerSeqMap[tw] || 0) + 1;
+        });
+        const towerSeqArr = Object.entries(towerSeqMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label, value]) => ({label, value}));
+        drawBar('c3', towerSeqArr, {horizontal: true, color: '#2bd9ab', unit: 'Sambaran', padLeft: 310, fontSize: '9px'});
+      } else {
+        drawBar('c3', [], {horizontal: true, color: '#2bd9ab', unit: 'Sambaran'});
+      }
+
+      // Chart 4: Akumulasi Arus Sambaran (kA) per Tower
+      if(cTower && cArus){
+        const towerArusMap = {};
+        rows.forEach(r => {
+          const tw = r[cTower];
+          const arusVal = Math.abs(parseFloat((r[cArus]||'').replace(/,/g,'.')) || 0);
+          if(tw) towerArusMap[tw] = (towerArusMap[tw] || 0) + arusVal;
+        });
+        const towerArusArr = Object.entries(towerArusMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label, value]) => ({label, value: Math.round(value * 10) / 10}));
+        drawBar('c4', towerArusArr, {horizontal: true, color: '#f0546b', unit: 'kA', padLeft: 310, fontSize: '9px'});
+      } else {
+        drawBar('c4', [], {horizontal: true, color: '#f0546b', unit: 'kA'});
+      }
 
     } else if(currentTab === "db_ABO/CE"){
       container.innerHTML = `
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRES REALISASI ABO</span>
+            <span>PROGRESS REALISASI ABO (PER ULTG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
               <span style="color:#4c8dff">■ BELUM REALISASI</span>
               <span style="color:#f0546b">■ SUDAH REALISASI</span>
@@ -1371,7 +1628,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRES REALISASI CE</span>
+            <span>PROGRESS REALISASI CE (PER ULTG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
               <span style="color:#4c8dff">■ BELUM REALISASI</span>
               <span style="color:#f0546b">■ SUDAH REALISASI</span>
@@ -1382,7 +1639,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRES REALISASI ABO PER BIDANG</span>
+            <span>PROGRESS REALISASI ABO (PER BIDANG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
               <span style="color:#4c8dff">■ BELUM REALISASI</span>
               <span style="color:#f0546b">■ SUDAH REALISASI</span>
@@ -1393,7 +1650,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRES REALISASI CE PER BIDANG</span>
+            <span>PROGRESS REALISASI CE (PER BIDANG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
               <span style="color:#4c8dff">■ BELUM REALISASI</span>
               <span style="color:#f0546b">■ SUDAH REALISASI</span>
@@ -1403,57 +1660,85 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         </div>
       `;
 
-      const cols = RAW_SHEET_DATA["db_ABO/CE"].cols;
-      
-      const colB_ULTG = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
-      const colL_Status = getColByLetter(cols, 'L') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
-      const colN_Jenis = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI', 'JENIS']);
-      const colO_Bidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
-
       const aboUltgMap = {}, ceUltgMap = {};
-      const aboBidangMap = {}, ceBidangMap = {};
+      const aboBidangMap = {
+        "GARDU INDUK": { belum: 0, sudah: 0 },
+        "JARINGAN": { belum: 0, sudah: 0 },
+        "PROTEKSI": { belum: 0, sudah: 0 }
+      };
+      const ceBidangMap = {
+        "GARDU INDUK": { belum: 0, sudah: 0 },
+        "JARINGAN": { belum: 0, sudah: 0 },
+        "PROTEKSI": { belum: 0, sudah: 0 }
+      };
 
       rows.forEach(r => {
-        const ultg = (r[colB_ULTG] || r['ULTG'] || 'Unspecified').trim();
-        const bidang = (r[colO_Bidang] || r['BIDANG'] || 'Unspecified').trim();
-        const statusRaw = (r[colL_Status] || r['STATUS REALISASI'] || r['STATUS'] || '').toUpperCase();
-        const jenisRaw = (r[colN_Jenis] || r['JENIS ANOMALI'] || r['ANOMALI'] || r['JENIS'] || '').toUpperCase();
+        const allValues = Object.values(r).map(v => String(v).trim());
+        const rowText = allValues.join(' ').toUpperCase();
 
-        const isDone = statusRaw.includes('SUDAH') || statusRaw.includes('SELESAI') || statusRaw.includes('100%') || statusRaw.includes('DONE') || statusRaw.includes('YA');
-        const isABO = jenisRaw.includes('ABO');
-        const isCE = jenisRaw.includes('CE');
+        let ultg = allValues.find(v => v.toUpperCase().includes('ULTG')) || 'UNSPECIFIED ULTG';
+        
+        let bidangRaw = allValues.find(v => {
+          const u = v.toUpperCase();
+          return u.includes('JARINGAN') || u.includes('GARDU INDUK') || u.includes('PROTEKSI') || u.includes('GI');
+        }) || '';
+
+        let bidangKey = "JARINGAN";
+        const bUp = bidangRaw.toUpperCase();
+        if(bUp.includes('GARDU INDUK') || bUp === 'GI') bidangKey = "GARDU INDUK";
+        else if(bUp.includes('PROTEKSI')) bidangKey = "PROTEKSI";
+        else if(bUp.includes('JARINGAN')) bidangKey = "JARINGAN";
+
+        const isABO = rowText.includes('ABO');
+        const isCE = rowText.includes('CE');
+
+        const isSudah = rowText.includes('SUDAH') || rowText.includes('SELESAI') || rowText.includes('100%');
+        const isBelum = rowText.includes('BELUM') || rowText.includes('PROSES') || rowText.includes('0%');
 
         if(isABO){
-          if(!aboUltgMap[ultg]) aboUltgMap[ultg] = { done: 0, pending: 0 };
-          if(isDone) aboUltgMap[ultg].done++; else aboUltgMap[ultg].pending++;
+          if(!aboUltgMap[ultg]) aboUltgMap[ultg] = { belum: 0, sudah: 0 };
+          if(isSudah && !isBelum) aboUltgMap[ultg].sudah++;
+          else aboUltgMap[ultg].belum++;
         }
         if(isCE){
-          if(!ceUltgMap[ultg]) ceUltgMap[ultg] = { done: 0, pending: 0 };
-          if(isDone) ceUltgMap[ultg].done++; else ceUltgMap[ultg].pending++;
+          if(!ceUltgMap[ultg]) ceUltgMap[ultg] = { belum: 0, sudah: 0 };
+          if(isSudah && !isBelum) ceUltgMap[ultg].sudah++;
+          else ceUltgMap[ultg].belum++;
         }
 
         if(isABO){
-          if(!aboBidangMap[bidang]) aboBidangMap[bidang] = { done: 0, pending: 0 };
-          if(isDone) aboBidangMap[bidang].done++; else aboBidangMap[bidang].pending++;
+          if(!aboBidangMap[bidangKey]) aboBidangMap[bidangKey] = { belum: 0, sudah: 0 };
+          if(isSudah && !isBelum) aboBidangMap[bidangKey].sudah++;
+          else aboBidangMap[bidangKey].belum++;
         }
         if(isCE){
-          if(!ceBidangMap[bidang]) ceBidangMap[bidang] = { done: 0, pending: 0 };
-          if(isDone) ceBidangMap[bidang].done++; else ceBidangMap[bidang].pending++;
+          if(!ceBidangMap[bidangKey]) ceBidangMap[bidangKey] = { belum: 0, sudah: 0 };
+          if(isSudah && !isBelum) ceBidangMap[bidangKey].sudah++;
+          else ceBidangMap[bidangKey].belum++;
         }
       });
 
-      const formatGroupData = (map) => Object.entries(map).map(([label, counts]) => ({
+      const fixedBidangOrder = ["GARDU INDUK", "JARINGAN", "PROTEKSI"];
+      const formatFixedBidangData = (map) => fixedBidangOrder.map(label => ({
         label,
         values: [
-          { name: 'BELUM REALISASI', value: counts.pending, color: '#4c8dff' },
-          { name: 'SUDAH REALISASI', value: counts.done, color: '#f0546b' }
+          { name: 'BELUM REALISASI', value: map[label] ? map[label].belum : 0, color: '#4c8dff' },
+          { name: 'SUDAH REALISASI', value: map[label] ? map[label].sudah : 0, color: '#f0546b' }
+        ]
+      }));
+
+      const formatUltgData = (map) => Object.entries(map).map(([label, counts]) => ({
+        label,
+        values: [
+          { name: 'BELUM REALISASI', value: counts.belum, color: '#4c8dff' },
+          { name: 'SUDAH REALISASI', value: counts.sudah, color: '#f0546b' }
         ]
       })).sort((a,b) => (b.values[0].value + b.values[1].value) - (a.values[0].value + a.values[1].value));
 
-      drawGroupedBar('c1', formatGroupData(aboUltgMap), { unit: 'Item' });
-      drawGroupedBar('c2', formatGroupData(ceUltgMap), { unit: 'Item' });
-      drawGroupedBar('c3', formatGroupData(aboBidangMap), { unit: 'Item' });
-      drawGroupedBar('c4', formatGroupData(ceBidangMap), { unit: 'Item' });
+      drawGroupedBar('c1', formatUltgData(aboUltgMap), { unit: 'Item' });
+      drawGroupedBar('c2', formatUltgData(ceUltgMap), { unit: 'Item' });
+      drawGroupedBar('c3', formatFixedBidangData(aboBidangMap), { unit: 'Item' });
+      drawGroupedBar('c4', formatFixedBidangData(ceBidangMap), { unit: 'Item' });
 
     } else if(currentTab === "db_Proker AO 53"){
       container.innerHTML = `
@@ -1473,7 +1758,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         bdRupiah[bd] = (bdRupiah[bd] || 0) + parseRupiah(r[cNilai]);
       });
       const bdArr = Object.entries(bdRupiah).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value: Math.round(value / 1e6)}));
-      drawBar('c1', bdArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp'});
+      drawBar('c1', bdArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp', padLeft: 180});
 
       const skCounts = {};
       rows.forEach(r => {
@@ -1509,7 +1794,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         grupRupiah[g] = (grupRupiah[g] || 0) + parseRupiah(r[cNilaiSkki]);
       });
       const grupRupiahArr = Object.entries(grupRupiah).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value: Math.round(value / 1e6)}));
-      drawBar('c1', grupRupiahArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp'});
+      drawBar('c1', grupRupiahArr, {horizontal: true, color: '#4c8dff', unit: 'Jt Rp', padLeft: 180});
 
       const skkiCounts = {};
       rows.forEach(r => {
@@ -1539,17 +1824,14 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const cKategori = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN']);
       const cBay = findCol(sample, ['BAY']);
 
-      // 1. Top 10 Gardu
       const garduCounts = {}; rows.forEach(r => { if(r[cGardu]) garduCounts[r[cGardu]] = (garduCounts[r[cGardu]]||0)+1; });
       const garduArr = Object.entries(garduCounts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label, value}));
-      drawBar('c1', garduArr, {horizontal: true, color: '#f0546b', unit: 'Gangguan'});
+      drawBar('c1', garduArr, {horizontal: true, color: '#f0546b', unit: 'Gangguan', padLeft: 180});
 
-      // 2. Rank Kategori
       const katCounts = {}; rows.forEach(r => { if(r[cKategori]) katCounts[r[cKategori]] = (katCounts[r[cKategori]]||0)+1; });
       const katArr = Object.entries(katCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value}));
       drawBar('c2', katArr, {horizontal: false, color: '#4c8dff', unit: 'Gangguan'});
 
-      // 3. Gangguan Bay Line per Kategori
       const lineKatCounts = {}; 
       rows.filter(r => {
         const b = (r[cBay] || '').toUpperCase();
@@ -1561,7 +1843,6 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const lineKatArr = Object.entries(lineKatCounts).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label, value}));
       drawBar('c3', lineKatArr, {horizontal: false, color: '#2bd9ab', unit: 'Gangguan'});
 
-      // 4. Gangguan Bay Trafo per Kategori
       const trafoKatCounts = {}; 
       rows.filter(r => {
         const b = (r[cBay] || '').toUpperCase();
@@ -1605,16 +1886,21 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     const max = Math.max(...items.map(i=>Math.abs(i.value)), 1);
 
     if(opts.horizontal){
-      const padLeft = 180, padRight = 35, padTop = 10;
+      const padLeft = opts.padLeft || 180;
+      const padRight = 35, padTop = 10;
       const gap = (cssHeight - padTop) / items.length;
       const barH = Math.min(18, gap * 0.7);
+      const fontStr = opts.fontSize || '11px';
 
       items.forEach((it, i) => {
         const y = padTop + i * gap;
         const w = (cssWidth - padLeft - padRight) * (Math.abs(it.value) / max);
 
-        ctx.fillStyle = textColor; ctx.font = '11px IBM Plex Sans'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-        ctx.fillText(it.label.length > 25 ? it.label.slice(0, 24) + '…' : it.label, padLeft - 10, y + barH/2);
+        ctx.fillStyle = textColor; ctx.font = `${fontStr} IBM Plex Sans`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        
+        const maxChar = padLeft > 250 ? 42 : 25;
+        const displayLabel = it.label.length > maxChar ? it.label.slice(0, maxChar - 1) + '…' : it.label;
+        ctx.fillText(displayLabel, padLeft - 10, y + barH/2);
 
         ctx.fillStyle = opts.color || '#4c8dff';
         roundRect(ctx, padLeft, y, Math.max(w, 2), barH, 3);
@@ -1676,6 +1962,91 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         }
       };
     }
+  }
+
+  function drawGroupedBarMultiYear(canvasId, items){
+    const canvas = document.getElementById(canvasId);
+    if(!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.parentElement.clientWidth - 36;
+    const cssHeight = parseInt(canvas.getAttribute('height'),10) || 220;
+    canvas.style.width = cssWidth + 'px';
+    canvas.style.height = cssHeight + 'px';
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const textColor = isLight ? '#334155' : '#aab6cc';
+    const textHiColor = isLight ? '#0f172a' : '#e8edf7';
+    const gridColor = isLight ? '#e2e8f0' : '#1a2440';
+
+    if(items.length === 0) return;
+
+    let maxVal = 1;
+    items.forEach(it => {
+      it.values.forEach(v => {
+        if(v.value > maxVal) maxVal = v.value;
+      });
+    });
+    maxVal = Math.ceil(maxVal * 1.15);
+
+    const padLeft = 40, padRight = 20, padBottom = 35, padTop = 25;
+    const chartW = cssWidth - padLeft - padRight;
+    const chartH = cssHeight - padTop - padBottom;
+
+    const steps = 4;
+    ctx.lineWidth = 1;
+    for(let s = 0; s <= steps; s++){
+      const val = Math.round((maxVal / steps) * s);
+      const y = cssHeight - padBottom - (chartH / steps) * s;
+
+      ctx.strokeStyle = gridColor;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, y);
+      ctx.lineTo(cssWidth - padRight, y);
+      ctx.stroke();
+
+      ctx.fillStyle = textColor; ctx.font = '9.5px JetBrains Mono'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(val, padLeft - 6, y);
+    }
+
+    const groupGap = chartW / items.length;
+    const numSubBars = items[0].values.length;
+    const totalSubBarWidth = groupGap * 0.75;
+    const subBarW = Math.max(4, totalSubBarWidth / numSubBars - 2);
+
+    items.forEach((it, i) => {
+      const groupX = padLeft + i * groupGap + (groupGap - totalSubBarWidth)/2;
+
+      it.values.forEach((v, vIdx) => {
+        const h = chartH * (v.value / maxVal);
+        const x = groupX + vIdx * (subBarW + 2);
+        const y = cssHeight - padBottom - h;
+
+        ctx.fillStyle = v.color;
+        roundRect(ctx, x, y, subBarW, Math.max(h, 2), 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = textColor; ctx.font = '10px IBM Plex Sans'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.fillText(it.label, padLeft + i * groupGap + groupGap/2, cssHeight - 10);
+    });
+
+    canvas.onmousemove = function(e){
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const idx = Math.floor((mouseX - padLeft) / groupGap);
+      if(idx >= 0 && idx < items.length){
+        const detailStr = items[idx].values.map(v => `${v.name}: ${v.value}`).join(' | ');
+        canvas.title = `Bulan ${items[idx].label} — ${detailStr}`;
+      } else {
+        canvas.title = '';
+      }
+    };
   }
 
   function drawGroupedBar(canvasId, items, opts){
