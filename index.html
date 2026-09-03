@@ -753,6 +753,8 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     const grid = document.getElementById('filtersGrid');
     const st = tabStates[currentTab];
     const rows = dataObj.rows;
+    const sample = rows[0] || {};
+    const cols = dataObj.cols || [];
 
     let html = '';
 
@@ -794,13 +796,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     };
 
     if(currentTab === "db_Anomali"){
-      const colUltg = findCol(rows[0], ['ULTG']);
-      const colGi = findCol(rows[0], ['GI', 'GARDU INDUK']);
-      const colBidang = findCol(rows[0], ['BIDANG']);
-      const colStatus = findCol(rows[0], ['STATUS LKS', 'STATUS']);
-      const colPelaksana = findCol(rows[0], ['PELAKSANA']);
-      const colAnggaran = findCol(rows[0], ['STATUS ANGGARAN', 'ANGGARAN']);
-      const colJenis = findCol(rows[0], ['JENIS', 'ANOMALI']);
+      const colUltg = findCol(sample, ['ULTG']);
+      const colGi = findCol(sample, ['GI', 'GARDU INDUK']);
+      const colBidang = findCol(sample, ['BIDANG']);
+      const colStatus = findCol(sample, ['STATUS LKS', 'STATUS']);
+      const colPelaksana = findCol(sample, ['PELAKSANA']);
+      const colAnggaran = findCol(sample, ['STATUS ANGGARAN', 'ANGGARAN']);
+      const colJenis = findCol(sample, ['JENIS', 'ANOMALI']);
 
       let giPool = rows;
       if(st.ultg && colUltg) giPool = giPool.filter(r => r[colUltg] === st.ultg);
@@ -816,10 +818,10 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         ${makeCustomMultiYearHtml(rows, st.tahun)}
       `;
     } else if(currentTab === "db_MTU_AHI"){
-      const colUltg = findCol(rows[0], ['ULTG']);
-      const colGi = findCol(rows[0], ['GI', 'GARDU INDUK']);
-      const colPeralatan = findCol(rows[0], ['PERALATAN', 'BAY', 'EQUIPMENT']);
-      const colAhi = findCol(rows[0], ['AHI VALIDASI', 'AHI', 'KONDISI', 'HEALTH INDEX']);
+      const colUltg = findCol(sample, ['ULTG']);
+      const colGi = findCol(sample, ['GI', 'GARDU INDUK']);
+      const colPeralatan = findCol(sample, ['PERALATAN', 'BAY', 'EQUIPMENT']);
+      const colAhi = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI', 'HEALTH INDEX']);
 
       let giPool = rows;
       if(st.ultg && colUltg) giPool = giPool.filter(r => r[colUltg] === st.ultg);
@@ -831,11 +833,11 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>AHI Validasi</label><select id="f_ahi"><option value="">Semua Status AHI</option>${uniqVals(rows, colAhi).map(v=>`<option value="${escapeAttr(v)}" ${st.ahi===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
       `;
     } else if(currentTab === "db_Kerapatan_Petir"){
-      const colPenghantar = findCol(rows[0], ['PENGHANTAR', 'JALUR', 'SUTT']);
-      const colTegangan = findCol(rows[0], ['LEVEL TEGANGAN', 'TEGANGAN', 'KV']);
-      const colTower = findCol(rows[0], ['NAMA TOWER', 'TOWER', 'NO TOWER']);
-      const colMonth = findCol(rows[0], ['MONTH', 'BULAN']);
-      const colArus = findCol(rows[0], ['BESARAN ARUS', 'ARUS', 'KA', 'AMPERE']);
+      const colPenghantar = findCol(sample, ['PENGHANTAR', 'JALUR', 'SUTT']);
+      const colTegangan = findCol(sample, ['LEVEL TEGANGAN', 'TEGANGAN', 'KV']);
+      const colTower = findCol(sample, ['NAMA TOWER', 'TOWER', 'NO TOWER']);
+      const colMonth = findCol(sample, ['MONTH', 'BULAN']);
+      const colArus = findCol(sample, ['BESARAN ARUS', 'ARUS', 'KA', 'AMPERE']);
 
       let minArusData = -100, maxArusData = 200;
       if(colArus && rows.length > 0){
@@ -865,12 +867,12 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         ${makeCustomMultiYearHtml(rows, st.tahun)}
       `;
     } else if(currentTab === "db_ABO/CE"){
-      const cols = dataObj.cols;
-      const colUltg = getColByLetter(cols, 'B') || findCol(rows[0], ['ULTG']);
-      const colBidang = getColByLetter(cols, 'O') || findCol(rows[0], ['BIDANG']);
-      const colProgram = findCol(rows[0], ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
-      const colAnomali = getColByLetter(cols, 'N') || findCol(rows[0], ['JENIS ANOMALI', 'ANOMALI']);
-      const colStatus = getColByLetter(cols, 'L') || findCol(rows[0], ['STATUS REALISASI', 'REALISASI', 'STATUS']);
+      const colUltg = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
+      const colBidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+      const colProgram = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
+      
+      const colAnomali = getColByLetter(cols, 'M') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI', 'JENIS']);
+      const colStatus = getColByLetter(cols, 'N') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
 
       html = `
         <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
@@ -880,10 +882,10 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>Status Realisasi</label><select id="f_status"><option value="">Semua Status</option>${uniqVals(rows, colStatus).map(v=>`<option value="${escapeAttr(v)}" ${st.status===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
       `;
     } else if(currentTab === "db_Proker AO 53"){
-      const colBidang = findCol(rows[0], ['BIDANG']);
-      const colMitigasi = findCol(rows[0], ['PROKER MITIGASI', 'MITIGASI']);
-      const colStatusK = findCol(rows[0], ['STATUS KONTRAK', 'STATUS']);
-      const colSifatP = findCol(rows[0], ['SIFAT PEKERJAAN', 'SIFAT PEK', 'SIFAT']);
+      const colBidang = findCol(sample, ['BIDANG']);
+      const colMitigasi = findCol(sample, ['PROKER MITIGASI', 'MITIGASI']);
+      const colStatusK = findCol(sample, ['STATUS KONTRAK', 'STATUS']);
+      const colSifatP = findCol(sample, ['SIFAT PEKERJAAN', 'SIFAT PEK', 'SIFAT']);
 
       html = `
         <div class="field"><label>Bidang</label><select id="f_bidang"><option value="">Semua Bidang</option>${uniqVals(rows, colBidang).map(v=>`<option value="${escapeAttr(v)}" ${st.bidang===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
@@ -892,9 +894,9 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>Sifat Pekerjaan</label><select id="f_sifatPek"><option value="">Semua Sifat Pekerjaan</option>${uniqVals(rows, colSifatP).map(v=>`<option value="${escapeAttr(v)}" ${st.sifatPek===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
       `;
     } else if(currentTab === "db_Paket AI 2026"){
-      const colGrup = findCol(rows[0], ['GRUP', 'GROUP']);
-      const colProker = findCol(rows[0], ['PROKER', 'PROGRAM KERJA', 'PROGRAM']);
-      const colSkki = findCol(rows[0], ['PROSES SKKI', 'SKKI', 'STATUS SKKI']);
+      const colGrup = findCol(sample, ['GRUP', 'GROUP']);
+      const colProker = findCol(sample, ['PROKER', 'PROGRAM KERJA', 'PROGRAM']);
+      const colSkki = findCol(sample, ['PROSES SKKI', 'SKKI', 'STATUS SKKI']);
 
       html = `
         <div class="field"><label>Grup</label><select id="f_grup"><option value="">Semua Grup</option>${uniqVals(rows, colGrup).map(v=>`<option value="${escapeAttr(v)}" ${st.grup===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
@@ -902,13 +904,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="field"><label>Proses SKKI</label><select id="f_prosesSkki"><option value="">Semua Proses SKKI</option>${uniqVals(rows, colSkki).map(v=>`<option value="${escapeAttr(v)}" ${st.prosesSkki===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
       `;
     } else if(currentTab === "db_Gangguan"){
-      const colUltg = findCol(rows[0], ['ULTG']);
-      const colGardu = findCol(rows[0], ['GARDU', 'GI', 'GARDU INDUK']);
-      const colNamaBay = findCol(rows[0], ['NAMA BAY', 'BAY']);
-      const colKategori = findCol(rows[0], ['KATEGORI', 'KATEGORI GANGGUAN']);
-      const colSebab = findCol(rows[0], ['SEBAB', 'PENYEBAB']);
-      const colKondisi = findCol(rows[0], ['KONDISI']);
-      const colBay = findCol(rows[0], ['BAY']);
+      const colUltg = findCol(sample, ['ULTG']);
+      const colGardu = findCol(sample, ['GARDU', 'GI', 'GARDU INDUK']);
+      const colNamaBay = findCol(sample, ['NAMA BAY', 'BAY']);
+      const colKategori = findCol(sample, ['KATEGORI', 'KATEGORI GANGGUAN']);
+      const colSebab = findCol(sample, ['SEBAB', 'PENYEBAB']);
+      const colKondisi = findCol(sample, ['KONDISI']);
+      const colBay = findCol(sample, ['BAY']);
 
       html = `
         <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
@@ -996,7 +998,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
   function getFilteredRows(rows){
     const st = tabStates[currentTab];
-    const sample = rows[0];
+    const sample = rows[0] || {};
     const cols = RAW_SHEET_DATA[currentTab] ? RAW_SHEET_DATA[currentTab].cols : [];
 
     return rows.filter(r => {
@@ -1039,8 +1041,8 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         const cU = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
         const cB = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
         const cP = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
-        const cA = getColByLetter(cols, 'N') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI']);
-        const cS = getColByLetter(cols, 'L') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
+        const cA = getColByLetter(cols, 'M') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI', 'JENIS']);
+        const cS = getColByLetter(cols, 'N') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
 
         if(st.ultg && r[cU] !== st.ultg) return false;
         if(st.bidang && r[cB] !== st.bidang) return false;
@@ -1112,7 +1114,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
   function renderKPIs(rows, masterRows){
     const container = document.getElementById('kpiRow');
     const total = rows.length;
-    const sample = rows[0];
+    const sample = rows[0] || {};
     const cols = RAW_SHEET_DATA[currentTab] ? RAW_SHEET_DATA[currentTab].cols : [];
     let kpis = [];
 
@@ -1272,7 +1274,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     const legend = document.getElementById('busbarLegend');
     document.getElementById('busbarCount').textContent = `${rows.length.toLocaleString('id-ID')} Items`;
 
-    const sample = rows[0];
+    const sample = rows[0] || {};
     const cols = RAW_SHEET_DATA[currentTab] ? RAW_SHEET_DATA[currentTab].cols : [];
     let keyCol = null;
 
@@ -1382,7 +1384,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
   function renderCharts(rows){
     const container = document.getElementById('chartsGrid');
-    const sample = rows[0];
+    const sample = rows[0] || {};
     if(!sample || rows.length === 0){ container.innerHTML = ''; return; }
 
     if(currentTab === "db_Anomali"){
@@ -1617,10 +1619,10 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       container.innerHTML = `
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRESS REALISASI ABO (PER ULTG)</span>
+            <span>PROGRESS REALISASI ABO (PER BIDANG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
-              <span style="color:#4c8dff">■ BELUM REALISASI</span>
-              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+              <span style="color:#f5a623">■ BELUM REALISASI</span>
+              <span style="color:#2bd9ab">■ SUDAH REALISASI</span>
             </div>
           </div>
           <canvas id="c1" height="240"></canvas>
@@ -1628,10 +1630,10 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRESS REALISASI CE (PER ULTG)</span>
+            <span>PROGRESS REALISASI CE (PER BIDANG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
-              <span style="color:#4c8dff">■ BELUM REALISASI</span>
-              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+              <span style="color:#f5a623">■ BELUM REALISASI</span>
+              <span style="color:#2bd9ab">■ SUDAH REALISASI</span>
             </div>
           </div>
           <canvas id="c2" height="240"></canvas>
@@ -1639,10 +1641,10 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRESS REALISASI ABO (PER BIDANG)</span>
+            <span>PROGRESS REALISASI ABO (PER ULTG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
-              <span style="color:#4c8dff">■ BELUM REALISASI</span>
-              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+              <span style="color:#f5a623">■ BELUM REALISASI</span>
+              <span style="color:#2bd9ab">■ SUDAH REALISASI</span>
             </div>
           </div>
           <canvas id="c3" height="240"></canvas>
@@ -1650,17 +1652,22 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>PROGRESS REALISASI CE (PER BIDANG)</span>
+            <span>PROGRESS REALISASI CE (PER ULTG)</span>
             <div style="display:flex;gap:12px;font-size:10.5px;font-family:var(--mono);">
-              <span style="color:#4c8dff">■ BELUM REALISASI</span>
-              <span style="color:#f0546b">■ SUDAH REALISASI</span>
+              <span style="color:#f5a623">■ BELUM REALISASI</span>
+              <span style="color:#2bd9ab">■ SUDAH REALISASI</span>
             </div>
           </div>
           <canvas id="c4" height="240"></canvas>
         </div>
       `;
 
-      const aboUltgMap = {}, ceUltgMap = {};
+      const cols = RAW_SHEET_DATA[currentTab].cols;
+      const colBidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
+      const colUltg = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
+      const colProgram = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
+      const st = tabStates[currentTab];
+
       const aboBidangMap = {
         "GARDU INDUK": { belum: 0, sudah: 0 },
         "JARINGAN": { belum: 0, sudah: 0 },
@@ -1671,17 +1678,30 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         "JARINGAN": { belum: 0, sudah: 0 },
         "PROTEKSI": { belum: 0, sudah: 0 }
       };
+      const aboUltgMap = {}, ceUltgMap = {};
 
       rows.forEach(r => {
         const allValues = Object.values(r).map(v => String(v).trim());
         const rowText = allValues.join(' ').toUpperCase();
 
-        let ultg = allValues.find(v => v.toUpperCase().includes('ULTG')) || 'UNSPECIFIED ULTG';
-        
-        let bidangRaw = allValues.find(v => {
-          const u = v.toUpperCase();
-          return u.includes('JARINGAN') || u.includes('GARDU INDUK') || u.includes('PROTEKSI') || u.includes('GI');
-        }) || '';
+        const progVal = (colProgram ? r[colProgram] : '') || '';
+        const isRowABO = progVal.toUpperCase().includes('ABO') || rowText.includes('ABO');
+        const isRowCE = progVal.toUpperCase().includes('CE') || rowText.includes('CE');
+
+        if(st.program){
+          const targetProg = st.program.toUpperCase();
+          if(targetProg === 'ABO' && !isRowABO) return;
+          if(targetProg === 'CE' && !isRowCE) return;
+        }
+
+        const ultg = (colUltg ? r[colUltg] : '') || 'UNSPECIFIED ULTG';
+        let bidangRaw = (colBidang ? r[colBidang] : '') || '';
+        if(!bidangRaw){
+          bidangRaw = allValues.find(v => {
+            const u = v.toUpperCase();
+            return u.includes('JARINGAN') || u.includes('GARDU INDUK') || u.includes('PROTEKSI') || u.includes('GI');
+          }) || '';
+        }
 
         let bidangKey = "JARINGAN";
         const bUp = bidangRaw.toUpperCase();
@@ -1689,32 +1709,27 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         else if(bUp.includes('PROTEKSI')) bidangKey = "PROTEKSI";
         else if(bUp.includes('JARINGAN')) bidangKey = "JARINGAN";
 
-        const isABO = rowText.includes('ABO');
-        const isCE = rowText.includes('CE');
-
         const isSudah = rowText.includes('SUDAH') || rowText.includes('SELESAI') || rowText.includes('100%');
         const isBelum = rowText.includes('BELUM') || rowText.includes('PROSES') || rowText.includes('0%');
 
-        if(isABO){
+        if(isRowABO && (!st.program || st.program.toUpperCase() === 'ABO')){
+          if(aboBidangMap[bidangKey]){
+            if(isSudah && !isBelum) aboBidangMap[bidangKey].sudah++;
+            else aboBidangMap[bidangKey].belum++;
+          }
           if(!aboUltgMap[ultg]) aboUltgMap[ultg] = { belum: 0, sudah: 0 };
           if(isSudah && !isBelum) aboUltgMap[ultg].sudah++;
           else aboUltgMap[ultg].belum++;
         }
-        if(isCE){
+
+        if(isRowCE && (!st.program || st.program.toUpperCase() === 'CE')){
+          if(ceBidangMap[bidangKey]){
+            if(isSudah && !isBelum) ceBidangMap[bidangKey].sudah++;
+            else ceBidangMap[bidangKey].belum++;
+          }
           if(!ceUltgMap[ultg]) ceUltgMap[ultg] = { belum: 0, sudah: 0 };
           if(isSudah && !isBelum) ceUltgMap[ultg].sudah++;
           else ceUltgMap[ultg].belum++;
-        }
-
-        if(isABO){
-          if(!aboBidangMap[bidangKey]) aboBidangMap[bidangKey] = { belum: 0, sudah: 0 };
-          if(isSudah && !isBelum) aboBidangMap[bidangKey].sudah++;
-          else aboBidangMap[bidangKey].belum++;
-        }
-        if(isCE){
-          if(!ceBidangMap[bidangKey]) ceBidangMap[bidangKey] = { belum: 0, sudah: 0 };
-          if(isSudah && !isBelum) ceBidangMap[bidangKey].sudah++;
-          else ceBidangMap[bidangKey].belum++;
         }
       });
 
@@ -1722,23 +1737,23 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const formatFixedBidangData = (map) => fixedBidangOrder.map(label => ({
         label,
         values: [
-          { name: 'BELUM REALISASI', value: map[label] ? map[label].belum : 0, color: '#4c8dff' },
-          { name: 'SUDAH REALISASI', value: map[label] ? map[label].sudah : 0, color: '#f0546b' }
+          { name: 'BELUM REALISASI', value: map[label] ? map[label].belum : 0, color: '#f5a623' },
+          { name: 'SUDAH REALISASI', value: map[label] ? map[label].sudah : 0, color: '#2bd9ab' }
         ]
       }));
 
       const formatUltgData = (map) => Object.entries(map).map(([label, counts]) => ({
         label,
         values: [
-          { name: 'BELUM REALISASI', value: counts.belum, color: '#4c8dff' },
-          { name: 'SUDAH REALISASI', value: counts.sudah, color: '#f0546b' }
+          { name: 'BELUM REALISASI', value: counts.belum, color: '#f5a623' },
+          { name: 'SUDAH REALISASI', value: counts.sudah, color: '#2bd9ab' }
         ]
       })).sort((a,b) => (b.values[0].value + b.values[1].value) - (a.values[0].value + a.values[1].value));
 
-      drawGroupedBar('c1', formatUltgData(aboUltgMap), { unit: 'Item' });
-      drawGroupedBar('c2', formatUltgData(ceUltgMap), { unit: 'Item' });
-      drawGroupedBar('c3', formatFixedBidangData(aboBidangMap), { unit: 'Item' });
-      drawGroupedBar('c4', formatFixedBidangData(ceBidangMap), { unit: 'Item' });
+      drawGroupedBar('c1', formatFixedBidangData(aboBidangMap), { unit: 'Item' });
+      drawGroupedBar('c2', formatFixedBidangData(ceBidangMap), { unit: 'Item' });
+      drawGroupedBar('c3', formatUltgData(aboUltgMap), { unit: 'Item' });
+      drawGroupedBar('c4', formatUltgData(ceUltgMap), { unit: 'Item' });
 
     } else if(currentTab === "db_Proker AO 53"){
       container.innerHTML = `
