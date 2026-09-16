@@ -491,7 +491,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     const loginError = document.getElementById('loginError');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    const isLogged = localStorage.getItem('ultg_logged_in') === 'true';
+    const isLogged = sessionStorage.getItem('ultg_logged_in') === 'true';
     if(isLogged){
       loginPage.style.display = 'none';
       appContainer.style.display = 'block';
@@ -507,7 +507,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const p = document.getElementById('passInput').value.trim();
 
       if(u === AUTH_USER && p === AUTH_PASS){
-        localStorage.setItem('ultg_logged_in', 'true');
+        sessionStorage.setItem('ultg_logged_in', 'true');
         loginPage.style.display = 'none';
         appContainer.style.display = 'block';
         fetchAllLiveData();
@@ -517,7 +517,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     };
 
     logoutBtn.onclick = function(){
-      localStorage.removeItem('ultg_logged_in');
+      sessionStorage.removeItem('ultg_logged_in');
       location.reload();
     };
   }
@@ -632,14 +632,14 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     };
 
     const script = document.createElement('script');
-    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tq=${encodeURIComponent('select *')}&tqx=out:json;responseHandler:gvizCallback&sheet=${encodeURIComponent(sheetName)}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tq=${encodeURIComponent('select *')}&tqx=out:json;responseHandler:gvizCallback&sheet=${encodeURIComponent(sheetName)}&_=${Date.now()}`;
     script.src = url;
     script.onerror = () => showError(`Gagal menghubungi server Google Sheets untuk ${sheetName}`);
     document.body.appendChild(script);
   }
 
   function fetchAllLiveData(){
-    if(localStorage.getItem('ultg_logged_in') !== 'true') return;
+    if(sessionStorage.getItem('ultg_logged_in') !== 'true') return;
     currentFetchIndex = 0;
     RAW_SHEET_DATA = {};
     document.getElementById('refreshBtn').disabled = true;
@@ -1424,9 +1424,9 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
     } else if(currentTab === "db_MTU_AHI"){
       container.innerHTML = `
-        <div class="chart-card"><div class="chart-title"><span>Top 10 GI — AHI Kritikal</span></div><canvas id="c1" height="220"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Top 10 GI — AHI Validasi</span></div><canvas id="c1" height="220"></canvas></div>
         <div class="chart-card"><div class="chart-title"><span>Rank AHI ULTG</span></div><canvas id="c2" height="220"></canvas></div>
-        <div class="chart-card" style="grid-column: span 2;"><div class="chart-title"><span>Sebaran AHI Kritikal per Jenis Peralatan</span></div><canvas id="c3" height="200"></canvas></div>
+        <div class="chart-card" style="grid-column: span 2;"><div class="chart-title"><span>Sebaran AHI Validasi per Jenis Peralatan</span></div><canvas id="c3" height="200"></canvas></div>
       `;
 
       const cGi = findCol(sample, ['GI', 'GARDU INDUK']);
@@ -1434,35 +1434,32 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const cAhiValidasi = findCol(sample, ['AHI VALIDASI', 'AHI', 'KONDISI']);
       const cPeralatan = findCol(sample, ['PERALATAN', 'BAY', 'EQUIPMENT']);
 
-      const giKrit = {};
-      rows.filter(r => {
-        const val = (r[cAhiValidasi] || '').toUpperCase();
-        return val.includes('KRITIKAL') || val.includes('CRITICAL');
-      }).forEach(r => {
-        if(r[cGi]) giKrit[r[cGi]] = (giKrit[r[cGi]]||0)+1;
-      });
-      const giArr = Object.entries(giKrit).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
-      drawBar('c1', giArr, {horizontal: true, color: '#f0546b', unit: 'Kritikal', padLeft: 180});
+      // Grafik mengikuti seluruh rows hasil filter aktif. Status AHI tidak lagi dikunci ke Kritikal.
+      // Jika user memilih AHI Validasi = Kritikal, rows otomatis hanya berisi data Kritikal.
+      const ahiRows = cAhiValidasi
+        ? rows.filter(r => String(r[cAhiValidasi] || '').trim() !== '')
+        : rows;
 
-      const ultgKrit = {};
-      rows.filter(r => {
-        const val = (r[cAhiValidasi] || '').toUpperCase();
-        return val.includes('KRITIKAL') || val.includes('CRITICAL');
-      }).forEach(r => {
-        if(r[cUltg]) ultgKrit[r[cUltg]] = (ultgKrit[r[cUltg]]||0)+1;
+      const giAhi = {};
+      ahiRows.forEach(r => {
+        if(r[cGi]) giAhi[r[cGi]] = (giAhi[r[cGi]]||0)+1;
       });
-      const ultgArr = Object.entries(ultgKrit).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
-      drawBar('c2', ultgArr, {horizontal: false, color: '#4c8dff', unit: 'Kritikal'});
+      const giArr = Object.entries(giAhi).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
+      drawBar('c1', giArr, {horizontal: true, color: '#f0546b', unit: 'Item AHI', padLeft: 180});
 
-      const eqKrit = {};
-      rows.filter(r => {
-        const val = (r[cAhiValidasi] || '').toUpperCase();
-        return val.includes('KRITIKAL') || val.includes('CRITICAL');
-      }).forEach(r => {
-        if(r[cPeralatan]) eqKrit[r[cPeralatan]] = (eqKrit[r[cPeralatan]]||0)+1;
+      const ultgAhi = {};
+      ahiRows.forEach(r => {
+        if(r[cUltg]) ultgAhi[r[cUltg]] = (ultgAhi[r[cUltg]]||0)+1;
       });
-      const eqArr = Object.entries(eqKrit).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([label,value])=>({label,value}));
-      drawBar('c3', eqArr, {horizontal: false, color: '#a855f7', unit: 'Kritikal'});
+      const ultgArr = Object.entries(ultgAhi).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
+      drawBar('c2', ultgArr, {horizontal: false, color: '#4c8dff', unit: 'Item AHI'});
+
+      const eqAhi = {};
+      ahiRows.forEach(r => {
+        if(r[cPeralatan]) eqAhi[r[cPeralatan]] = (eqAhi[r[cPeralatan]]||0)+1;
+      });
+      const eqArr = Object.entries(eqAhi).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([label,value])=>({label,value}));
+      drawBar('c3', eqArr, {horizontal: false, color: '#a855f7', unit: 'Item AHI'});
 
     } else if(currentTab === "db_Kerapatan_Petir"){
       const st = tabStates[currentTab];
@@ -1666,6 +1663,9 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const colBidang = getColByLetter(cols, 'O') || findCol(sample, ['BIDANG']);
       const colUltg = getColByLetter(cols, 'B') || findCol(sample, ['ULTG']);
       const colProgram = findCol(sample, ['PROKER', 'PROGRAM', 'PROGRAM KERJA', 'PEKERJAAN']);
+      // FIX ABO/CE: status realisasi wajib dibaca hanya dari kolom N / STATUS REALISASI.
+      // Sebelumnya status dicari dari seluruh isi row sehingga teks "100%" ikut cocok dengan "0%".
+      const colStatus = getColByLetter(cols, 'N') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
       const st = tabStates[currentTab];
 
       const aboBidangMap = {
@@ -1684,9 +1684,11 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         const allValues = Object.values(r).map(v => String(v).trim());
         const rowText = allValues.join(' ').toUpperCase();
 
-        const progVal = (colProgram ? r[colProgram] : '') || '';
-        const isRowABO = progVal.toUpperCase().includes('ABO') || rowText.includes('ABO');
-        const isRowCE = progVal.toUpperCase().includes('CE') || rowText.includes('CE');
+        const progVal = String((colProgram ? r[colProgram] : '') || '').trim().toUpperCase();
+        // FIX ABO/CE: klasifikasi program hanya berdasarkan kolom program kerja,
+        // bukan pencarian kata ABO/CE di seluruh row (mencegah false match dari kolom lain).
+        const isRowABO = progVal === 'ABO' || progVal.startsWith('ABO ') || progVal.includes(' ABO');
+        const isRowCE  = progVal === 'CE'  || progVal.startsWith('CE ')  || progVal.includes(' CE');
 
         if(st.program){
           const targetProg = st.program.toUpperCase();
@@ -1709,27 +1711,42 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         else if(bUp.includes('PROTEKSI')) bidangKey = "PROTEKSI";
         else if(bUp.includes('JARINGAN')) bidangKey = "JARINGAN";
 
-        const isSudah = rowText.includes('SUDAH') || rowText.includes('SELESAI') || rowText.includes('100%');
-        const isBelum = rowText.includes('BELUM') || rowText.includes('PROSES') || rowText.includes('0%');
+        // FIX ABO/CE: single source of truth = kolom STATUS REALISASI (N).
+        // Normalisasi dibuat eksplisit agar 100% tidak pernah terbaca sebagai 0%.
+        const statusVal = String((colStatus ? r[colStatus] : '') || '').trim().toUpperCase();
+        const statusCompact = statusVal.replace(/\s+/g, ' ');
+        const isSudah =
+          statusCompact === 'SUDAH REALISASI' ||
+          statusCompact === 'SUDAH' ||
+          statusCompact === 'SELESAI' ||
+          statusCompact === '100%' ||
+          statusCompact === '100';
+        const isBelum =
+          statusCompact === 'BELUM REALISASI' ||
+          statusCompact === 'BELUM' ||
+          statusCompact === 'PROSES' ||
+          statusCompact === 'DALAM PROSES' ||
+          statusCompact === '0%' ||
+          statusCompact === '0';
 
         if(isRowABO && (!st.program || st.program.toUpperCase() === 'ABO')){
           if(aboBidangMap[bidangKey]){
-            if(isSudah && !isBelum) aboBidangMap[bidangKey].sudah++;
-            else aboBidangMap[bidangKey].belum++;
+            if(isSudah) aboBidangMap[bidangKey].sudah++;
+            else if(isBelum) aboBidangMap[bidangKey].belum++;
           }
           if(!aboUltgMap[ultg]) aboUltgMap[ultg] = { belum: 0, sudah: 0 };
-          if(isSudah && !isBelum) aboUltgMap[ultg].sudah++;
-          else aboUltgMap[ultg].belum++;
+          if(isSudah) aboUltgMap[ultg].sudah++;
+          else if(isBelum) aboUltgMap[ultg].belum++;
         }
 
         if(isRowCE && (!st.program || st.program.toUpperCase() === 'CE')){
           if(ceBidangMap[bidangKey]){
-            if(isSudah && !isBelum) ceBidangMap[bidangKey].sudah++;
-            else ceBidangMap[bidangKey].belum++;
+            if(isSudah) ceBidangMap[bidangKey].sudah++;
+            else if(isBelum) ceBidangMap[bidangKey].belum++;
           }
           if(!ceUltgMap[ultg]) ceUltgMap[ultg] = { belum: 0, sudah: 0 };
-          if(isSudah && !isBelum) ceUltgMap[ultg].sudah++;
-          else ceUltgMap[ultg].belum++;
+          if(isSudah) ceUltgMap[ultg].sudah++;
+          else if(isBelum) ceUltgMap[ultg].belum++;
         }
       });
 
