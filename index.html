@@ -1486,7 +1486,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 
       const seqMap = {}; rows.forEach(r => { if(r[cPenghantar]) seqMap[r[cPenghantar]] = (seqMap[r[cPenghantar]]||0)+1; });
       const seqArr = Object.entries(seqMap).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([label,value])=>({label,value}));
-      drawBar('c1', seqArr, {horizontal: true, color: '#f5a623', unit: 'Sambaran', padLeft: 180});
+      drawBar('c1', seqArr, {horizontal: true, color: '#f5a623', unit: 'Sambaran', padLeft: 285, fullLabel: true, fontSize: '10.5px'});
 
       const monthNames = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
       
@@ -1931,7 +1931,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         ctx.fillStyle = textColor; ctx.font = `${fontStr} IBM Plex Sans`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
         
         const maxChar = padLeft > 250 ? 42 : 25;
-        const displayLabel = it.label.length > maxChar ? it.label.slice(0, maxChar - 1) + '…' : it.label;
+        const displayLabel = opts.fullLabel ? it.label : (it.label.length > maxChar ? it.label.slice(0, maxChar - 1) + '…' : it.label);
         ctx.fillText(displayLabel, padLeft - 10, y + barH/2);
 
         ctx.fillStyle = opts.color || '#4c8dff';
