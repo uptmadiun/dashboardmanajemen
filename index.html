@@ -852,10 +852,22 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         st.minArus = minArusData;
       }
 
+      // Cascading filter: daftar Nama Tower mengikuti Penghantar yang dipilih.
+      // Jika Penghantar = Semua, tampilkan seluruh tower. Jika pilihan tower lama
+      // tidak tersedia pada penghantar baru, otomatis kembali ke Semua Tower.
+      let towerPool = rows;
+      if(st.penghantar && colPenghantar){
+        towerPool = rows.filter(r => String(r[colPenghantar] ?? '').trim() === String(st.penghantar).trim());
+      }
+      const availableTowers = uniqVals(towerPool, colTower);
+      if(st.tower && !availableTowers.includes(st.tower)){
+        st.tower = '';
+      }
+
       html = `
         <div class="field"><label>Penghantar</label><select id="f_penghantar"><option value="">Semua Penghantar</option>${uniqVals(rows, colPenghantar).map(v=>`<option value="${escapeAttr(v)}" ${st.penghantar===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Level Tegangan</label><select id="f_tegangan"><option value="">Semua Tegangan</option>${uniqVals(rows, colTegangan).map(v=>`<option value="${escapeAttr(v)}" ${st.tegangan===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Nama Tower</label><select id="f_tower"><option value="">Semua Tower</option>${uniqVals(rows, colTower).map(v=>`<option value="${escapeAttr(v)}" ${st.tower===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Nama Tower</label><select id="f_tower"><option value="">Semua Tower</option>${availableTowers.map(v=>`<option value="${escapeAttr(v)}" ${st.tower===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field"><label>Bulan (Month)</label><select id="f_month"><option value="">Semua Bulan</option>${uniqVals(rows, colMonth).map(v=>`<option value="${escapeAttr(v)}" ${st.month===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
         <div class="field" style="grid-column: span 2;">
           <label>Min. Arus Sambaran (kA)</label>
@@ -1470,6 +1482,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="chart-card">
           <div class="chart-title">
             <span>${escapeHtml(titleTrend)}</span>
+            ${(!st.tahun || st.tahun.length === 0) ? `<div style="font-size:10px;color:var(--teal);font-family:var(--mono);">Tip: Pilih filter Tahun di atas untuk melihat spesifik per tahun</div>` : ''}
           </div>
           <canvas id="c2" height="220"></canvas>
         </div>
