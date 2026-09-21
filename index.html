@@ -886,12 +886,20 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       const colAnomali = getColByLetter(cols, 'M') || findCol(sample, ['JENIS ANOMALI', 'ANOMALI', 'JENIS']);
       const colStatus = getColByLetter(cols, 'N') || findCol(sample, ['STATUS REALISASI', 'REALISASI', 'STATUS']);
 
+      // Cascading filter ABO/CE (berjenjang):
+      // ULTG -> Bidang -> Program Kerja -> Jenis Anomali -> Status Realisasi.
+      // Setiap dropdown hanya menampilkan opsi yang masih tersedia dari pilihan sebelumnya.
+      const poolBidang = st.ultg && colUltg ? rows.filter(r => r[colUltg] === st.ultg) : rows;
+      const poolProgram = poolBidang.filter(r => !st.bidang || !colBidang || r[colBidang] === st.bidang);
+      const poolAnomali = poolProgram.filter(r => !st.program || !colProgram || r[colProgram] === st.program);
+      const poolStatus = poolAnomali.filter(r => !st.anomali || !colAnomali || r[colAnomali] === st.anomali);
+
       html = `
         <div class="field"><label>ULTG</label><select id="f_ultg"><option value="">Semua ULTG</option>${uniqVals(rows, colUltg).map(v=>`<option value="${escapeAttr(v)}" ${st.ultg===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Bidang / Kategori</label><select id="f_bidang"><option value="">Semua Bidang</option>${uniqVals(rows, colBidang).map(v=>`<option value="${escapeAttr(v)}" ${st.bidang===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Program Kerja</label><select id="f_program"><option value="">Semua Program</option>${uniqVals(rows, colProgram).map(v=>`<option value="${escapeAttr(v)}" ${st.program===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Jenis Anomali</label><select id="f_anomali"><option value="">Semua Jenis</option>${uniqVals(rows, colAnomali).map(v=>`<option value="${escapeAttr(v)}" ${st.anomali===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
-        <div class="field"><label>Status Realisasi</label><select id="f_status"><option value="">Semua Status</option>${uniqVals(rows, colStatus).map(v=>`<option value="${escapeAttr(v)}" ${st.status===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Bidang / Kategori</label><select id="f_bidang"><option value="">Semua Bidang</option>${uniqVals(poolBidang, colBidang).map(v=>`<option value="${escapeAttr(v)}" ${st.bidang===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Program Kerja</label><select id="f_program"><option value="">Semua Program</option>${uniqVals(poolProgram, colProgram).map(v=>`<option value="${escapeAttr(v)}" ${st.program===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Jenis Anomali</label><select id="f_anomali"><option value="">Semua Jenis</option>${uniqVals(poolAnomali, colAnomali).map(v=>`<option value="${escapeAttr(v)}" ${st.anomali===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
+        <div class="field"><label>Status Realisasi</label><select id="f_status"><option value="">Semua Status</option>${uniqVals(poolStatus, colStatus).map(v=>`<option value="${escapeAttr(v)}" ${st.status===v?'selected':''}>${escapeHtml(v)}</option>`).join('')}</select></div>
       `;
     } else if(currentTab === "db_Proker AO 53"){
       const colBidang = findCol(sample, ['BIDANG']);
@@ -944,6 +952,17 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       sel.addEventListener('change', e => {
         const key = sel.id.replace('f_', '');
         st[key] = e.target.value;
+
+        // ABO/CE: saat filter level atas berubah, reset filter di bawahnya
+        // agar pilihan selalu konsisten dengan data yang tersedia.
+        if(currentTab === "db_ABO/CE"){
+          const cascadeOrder = ['ultg', 'bidang', 'program', 'anomali', 'status'];
+          const idx = cascadeOrder.indexOf(key);
+          if(idx >= 0){
+            cascadeOrder.slice(idx + 1).forEach(k => st[k] = '');
+          }
+        }
+
         st.page = 1;
         renderDashboard();
       });
