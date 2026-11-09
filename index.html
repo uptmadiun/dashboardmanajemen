@@ -350,6 +350,27 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 .error-banner{background:var(--red-dim);border:1px solid rgba(240,84,107,0.35);border-radius:10px;padding:16px 20px;margin-bottom:20px;}
 .error-title{color:var(--red);font-weight:600;font-size:14px;margin-bottom:4px;}
 .footer{margin-top:30px;text-align:center;color:var(--text-lo);font-size:11px;font-family:var(--mono);}
+
+/* ---------- TAB KPI ---------- */
+.kp-note{font-size:11.5px;color:var(--text-mid);font-family:var(--mono);}
+.kp-r{display:grid;grid-template-columns:170px 1fr 96px;gap:10px;align-items:center;padding:7px 0;font-size:12px;color:var(--text-mid);border-top:1px solid var(--panel-border-soft);}
+.kp-r:first-child{border-top:0;}
+.kp-v{text-align:right;font-family:var(--mono);color:var(--text-hi);font-size:12px;}
+.kp-v small{color:var(--text-lo);}
+.kp-bar{height:8px;background:var(--bg-2);border-radius:4px;position:relative;--m:76.9%;}
+.kp-bar i{display:block;height:100%;border-radius:4px;}
+.kp-bar b{position:absolute;left:var(--m);top:-3px;bottom:-3px;width:1.5px;background:var(--text-hi);opacity:.5;}
+.kp-pb{display:flex;align-items:center;gap:8px;min-width:170px;}
+.kp-pb .kp-bar{flex:1;--m:66.67%;}
+.kp-pb span{width:64px;text-align:right;font-family:var(--mono);color:var(--text-hi);}
+.kp-li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--panel-border-soft);font-size:12px;color:var(--text-mid);}
+.kp-li:first-child{border-top:0;}
+.kp-sm{font-size:10.5px;color:var(--text-lo);margin-top:2px;}
+.kp-n{text-align:right;font-family:var(--mono);white-space:nowrap;}
+.kp-t tbody tr{cursor:default;}
+.kp-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;}
+.kp-chip{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--panel-border-soft);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text-mid);}
+@media (max-width:700px){.kp-r{grid-template-columns:110px 1fr 80px;}}
 </style>
 </head>
 <body>
@@ -402,6 +423,7 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
       <div class="nav-tab" data-sheet="db_Proker AO 53">💼 Dashboard Proker AO 53 <span class="badge-count" id="cnt_db_Proker AO 53">0</span></div>
       <div class="nav-tab" data-sheet="db_Paket AI 2026">🤖 Dashboard Paket AI 2026 <span class="badge-count" id="cnt_db_Paket AI 2026">0</span></div>
       <div class="nav-tab" data-sheet="db_Gangguan">⚡ Dashboard Gangguan <span class="badge-count" id="cnt_db_Gangguan">0</span></div>
+      <div class="nav-tab" data-sheet="kpi_UPT">📊 Dashboard Kinerja KPI <span class="badge-count" id="cnt_kpi_UPT">0</span></div>
     </div>
 
     <!-- LIVE STATUS -->
@@ -466,6 +488,31 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         </div>
       </div>
 
+    </div>
+
+
+    <!-- PANEL TAB KPI -->
+    <div id="kpiPanel" style="display:none;">
+      <div class="filters-card">
+        <div class="filters-head"><div class="ft-label">Filter Kinerja KPI</div><button class="refresh-btn" id="kpRef" style="margin-left:0;">⟳ Muat Ulang Data KPI</button></div>
+        <div class="filters-grid">
+          <div class="field"><label>Bulan Realisasi</label><select id="kpMo"></select></div>
+          <div class="field"><label>Kelompok Indikator</label><select id="kpFg"></select></div>
+          <div class="field"><label>Status</label><select id="kpFs"><option value="">Semua status</option><option value="g">Tercapai</option><option value="y">Perhatian</option><option value="r">Kritis</option><option value="n">Belum terisi</option></select></div>
+          <div class="field"><label>Pencarian</label><input type="text" id="kpQ" placeholder="Cari indikator..."></div>
+        </div>
+        <div class="kp-note" id="kpNote"></div>
+      </div>
+      <div class="kpi-row" id="kpKpi"></div>
+      <div class="charts-grid">
+        <div class="chart-card"><div class="chart-title"><span>Nilai per Kelompok Indikator</span><span>nilai / bobot terisi</span></div><div id="kpGrp"></div></div>
+        <div class="chart-card"><div class="chart-title"><span>Perlu Perhatian</span></div><div id="kpAtt"></div><div class="chart-title" style="margin-top:16px;"><span>Capaian Tertinggi</span></div><div id="kpTop"></div></div>
+      </div>
+      <div class="table-card" style="margin-bottom:20px;">
+        <div class="table-head"><div class="ft-label" id="kpCount">Rincian Indikator</div></div>
+        <div class="table-scroll"><table class="kp-t"><thead id="kpHead"></thead><tbody id="kpBody"></tbody></table></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:20px;"><div class="chart-title"><span>Kepatuhan, Maturity Level &amp; Tata Kelola</span></div><div class="kp-chips" id="kpChips"></div></div>
     </div>
 
     <div class="footer">UPT Madiun Integrated System · Operational Decision Support System</div>
@@ -715,7 +762,162 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     return val.toLocaleString('id-ID');
   }
 
+
+  /* ===== TAB KPI UPT MADIUN (data live dari spreadsheet KPI) ===== */
+  var KPI_ID="1NVIThYVmCKfMvp85qrNPn9pPyRy5ZX_XMxHSuPsIUio";
+  var KM=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  var KG={1:["Ketersediaan Transmisi",16],2:["Keandalan Line & Trafo",24],3:["Emergency Response Time",10],4:["Kinerja Proteksi",12],5:["Program Keandalan",9],6:["Anggaran Investasi & ATTB",14],7:["Dokumen Legal Aset Tanah",8],8:["Tata Kelola Aset & Gudang",7]};
+  var KD=[
+["1.a",1,"Faktor Ketersediaan Trafo (TRAF)","%",8,"u",99.92,100.00,100.08,8.01,"g"],
+["1.b",1,"Faktor Ketersediaan Transmisi (CCAF)","%",8,"u",99.92,99.98,100.06,8.00,"g"],
+["2.a",2,"Kali sirkit padam karena gangguan","kali",6,"d",3,2,133.33,6.60,"g"],
+["2.b",2,"Kali trafo GI padam karena gangguan","kali",6,"d",2,2,100,6.00,"g"],
+["2.c",2,"Kali gangguan pada peralatan di bay","kali",6,"d",1,1,100,6.00,"g"],
+["2.d",2,"MTTR Transformator (MTTR-TR)","jam/kejadian",2,"d",3,2.89,103.67,2.07,"g"],
+["2.e",2,"MTTR Penghantar (MTTR-TL)","jam/kejadian",2,"d",1,0.29,171.00,2.20,"g"],
+["2.f",2,"Reclose penghantar akibat gangguan","kali",2,"d",19,14,126.32,2.20,"g"],
+["3",3,"Emergency Response Time (gangguan meluas)","jam",10,"d",3,1.07,164.30,11.00,"g"],
+["4.a",4,"Security Index","%",4,"u",95,100,105.26,4.21,"g"],
+["4.b",4,"Dependability Index","%",4,"u",97,100,103.09,4.12,"g"],
+["4.c",4,"Auto Reclose Index","%",4,"u",95,96.08,101.14,4.05,"g"],
+["5.a",5,"Program Anti Blackout","%",3,"u",100,95.45,95.45,2.86,"y"],
+["5.b",5,"Common Enemy","%",3,"u",100,101.17,101.17,3.04,"g"],
+["5.c",5,"Program Kerja PDKB","%",3,"u",100,107.64,107.64,3.23,"g"],
+["6.a",6,"Anggaran Investasi murni terkontrak","%",2.5,"u",100,100,100,2.50,"g"],
+["6.b",6,"Progress fisik pekerjaan investasi","%",2.5,"u",100,110.98,110.98,2.75,"g"],
+["6.c",6,"Penyerapan anggaran investasi sesuai RKAP","%",3,"u","95–105",88.96,93.64,2.81,"r"],
+["6.d",6,"Usulan penghapusan ATTB","Rp juta",3,"u",5780.20,6394.63,110.63,3.30,"g"],
+["6.e",6,"Pengendalian NAC (Non Allowable Cost)","%",3,"d",100,0.46,199.54,3.30,"g"],
+["7",7,"Penyelesaian dokumen legal aset tanah PLN","dokumen",8,"u",31,82,264.52,8.80,"g"],
+["8.a",8,"Maturity level manajemen aset transmisi","%",2,"u",100,109.17,109.17,2.18,"g"],
+["8.b",8,"Kualitas data perhitungan material cadang","%",2,"u",100,110,110,2.20,"g"],
+["8.c",8,"Maturity level pergudangan","level",3,"u",3,4.01,133.67,3.30,"g"]];
+  var KC=[["PLN Bisnis Ekselen",100,"g"],["Sustainability",100,"g"],["Sistem Manajemen Kepatuhan",120.49,"g"],["Stakeholder Management",100,"g"],["Gudang",100,"g"],["Kerawanan Aset",96.40,"y"],["Penyelesaian Temuan Audit",100,"g"],["Pelaporan & Akurasi Data Kinerja",100,"g"],["Kejadian Critical Event",100,"g"],["Kearsipan",100,"g"],["Komitmen & Kewajiban PPKH",100,"g"],["Kepatuhan Inspeksi",103.16,"g"],["Implementasi New SIRANO",100,"g"],["Human Capital Index",100,"g"],["Roadmap Perbaikan Manajemen Risiko",104.80,"g"],["Implementasi E-proc",160,"g"],["Komunikasi & TJSL",100,"g"]];
+  var KN={"3":"emergency response","7":"penyelesaian dokumen legal"};
+  var KL={g:"Tercapai",y:"Perhatian",r:"Kritis",n:"Belum terisi"},KB={g:"badge-teal",y:"badge-amber",r:"badge-red",n:"badge-grey"};
+  var KS={mc:null,mo:8,rows:[],chips:[],sk:-1,sd:1,loading:false,loaded:false,init:false};
+  function $k(i){return document.getElementById(i);}
+  function kEsc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function kNm(s){return String(s==null?"":s).replace(/\s+/g," ").trim();}
+  function kf(v){if(v==null||v!==v)return "–";return typeof v==="string"?v:v.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function kNote(s){$k("kpNote").textContent=s;}
+  function kIx(rows){var m={},nx={};rows.forEach(function(r){var n=kNm(r[1]),k=kNm(r[0]);if(!k&&/^[abc]\d+\./.test(n))k=n.split(".")[0];if(k&&!m[k])m[k]=r;var l=n.toLowerCase();if(l&&!nx[l])nx[l]=r;});m._n=nx;return m;}
+  function kRow(M,id){var r=M[id];if(r&&kNm(r[1]))return r;if(KN[id]){var k=Object.keys(M._n).filter(function(x){return x.indexOf(KN[id])===0;})[0];if(k)return M._n[k];}return r;}
+  function kCell(r,i){var v=r&&r[6+i];if(v===undefined||v===null||v==="")return NaN;return typeof v==="number"?v:parseFloat(String(v).replace(",","."));}
+  function kFilled(R,m){return KD.filter(function(r){return !isNaN(kCell(kRow(R,r[0]),m));}).length;}
+
+  function kFetch(sheet,cb){
+    return new Promise(function(res,rej){
+      var s=document.createElement("script"),tm=setTimeout(function(){fin();rej(new Error("timeout"));},15000);
+      function fin(){clearTimeout(tm);try{delete window[cb];}catch(e){window[cb]=undefined;}if(s.parentNode)s.parentNode.removeChild(s);}
+      window[cb]=function(j){fin();try{if(!j||!j.table)throw 0;res(j.table.rows.map(function(r){return (r.c||[]).map(function(c){return c&&c.v!==undefined?c.v:null;});}));}catch(e){rej(new Error("format"));}};
+      s.onerror=function(){fin();rej(new Error("network"));};
+      s.src="https://docs.google.com/spreadsheets/d/"+KPI_ID+"/gviz/tq?tqx=out:json;responseHandler:"+cb+"&sheet="+encodeURIComponent(sheet)+"&range=B1:S92&headers=0&tq="+encodeURIComponent("select *")+"&_="+Date.now();
+      document.body.appendChild(s);
+    });
+  }
+
+  function kpiLoad(){
+    if(KS.loading)return;KS.loading=true;kNote("Memuat data KPI dari Google Sheets…");
+    Promise.all([kFetch("Realisasi Madiun","__kpiR"),kFetch("Target Madiun","__kpiT")]).then(function(a){
+      KS.mc={r:a[0],t:a[1]};KS.loaded=true;
+      var R=kIx(a[0]),m,best=8;for(m=11;m>=0;m--){if(kFilled(R,m)>=KD.length/2){best=m;break;}}
+      KS.mo=best;$k("kpMo").value=best;kpiCalc();
+      kNote("Terhubung live ke Google Sheets · data bulan "+KM[KS.mo]+" 2026");
+    }).catch(function(e){
+      KS.mc=null;KS.mo=8;$k("kpMo").value=8;KS.rows=KD;KS.chips=KC;kpiRender();
+      kNote("Gagal memuat data KPI ("+e.message+"). Menampilkan data cadangan September. Pastikan spreadsheet KPI dibagikan sebagai 'Siapa saja yang memiliki link' (Viewer), lalu klik Muat Ulang.");
+    }).then(function(){KS.loading=false;});
+  }
+
+  function kpiCalc(){
+    var R=kIx(KS.mc.r),T=kIx(KS.mc.t),mo=KS.mo,d=[],c=[];
+    KD.forEach(function(r){
+      var a=kRow(R,r[0]),b=kRow(T,r[0]),real=kCell(a,mo),t=kCell(b,mo),tt=isNaN(t)?null:t,p=null,s="n",nl=0,bw=r[4];
+      if(r[0]==="6.c"){tt="95–105";if(!isNaN(real))p=real<0?0:real<=95?real/95*100:real+5;}
+      else if(!isNaN(real)&&!isNaN(t)){
+        if(t===0)p=null;
+        else if((r[0]==="1.a"||r[0]==="1.b")&&real===0)p=0;
+        else p=Math.max(r[5]==="d"?(2*t-real)/t*100:real/t*100,0);
+      }
+      if(p!==null){nl=Math.min(p,110)*bw/100;s=p>=100?"g":p>95?"y":"r";}else if(!isNaN(real))s="g";
+      d.push([r[0],r[1],r[2],r[3],bw,r[5],tt,isNaN(real)?null:real,p,nl,s]);
+    });
+    Object.keys(R).forEach(function(k){
+      if(!/^[abc]\d+$/.test(k))return;
+      var a=R[k],b=T[k],real=kCell(a,mo),t=kCell(b,mo),u=kNm(a[4]),n=kNm(a[1]).replace(/^[abc]\d+\.\s*/,"");
+      if(isNaN(real)||(real===0&&!(t>0))||u==="poin")return;
+      if(u==="%"){var p=real/(t>=50?t:100)*100;c.push([n,p,p>=100?"g":p>95?"y":"r"]);}
+      else c.push([n,null,"n",kf(real)+" "+u]);
+    });
+    KS.rows=d;KS.chips=c;kpiRender();
+  }
+
+  function kpiRender(){
+    var D=KS.rows,fb=0,tn=0,c={g:0,y:0,r:0,n:0};
+    D.forEach(function(r){if(r[7]!==null)fb+=r[4];tn+=r[9];c[r[10]]++;});
+    var tot=fb?tn/fb*100:0;
+    var cd=function(l,v,s,col){return '<div class="kpi" style="--kpi-color:'+col+'"><div class="kpi-header-flex"><div class="kpi-label">'+l+'</div></div><div class="kpi-value">'+v+'</div><div class="kpi-sub">'+s+'</div></div>';};
+    $k("kpKpi").innerHTML=cd("Total Nilai Kinerja",kf(tot),"skala 100 = target","var(--blue)")+cd("Indikator Terisi",(D.length-c.n)+" / "+D.length,"bobot terisi "+kf(fb),"var(--purple)")+cd("Tercapai",c.g,"pencapaian ≥ 100%","var(--teal)")+cd("Perhatian",c.y,"di atas 95% s.d. 100%","var(--amber)")+cd("Kritis",c.r,"95% atau kurang","var(--red)")+cd("Belum Terisi",c.n,"realisasi kosong","var(--grey)");
+    var gh="";
+    Object.keys(KG).forEach(function(k){
+      var v=0,w=0;D.forEach(function(r){if(r[1]==k&&r[7]!==null){v+=r[9];w+=r[4];}});
+      var p=w?v/w*100:0,col=!w?"var(--grey)":p>=100?"var(--teal)":p>95?"var(--amber)":"var(--red)";
+      gh+='<div class="kp-r"><span>'+KG[k][0]+'</span><div class="kp-bar" title="'+kf(p)+'%"><i style="width:'+Math.min(p/130*100,100)+'%;background:'+col+'"></i><b></b></div><span class="kp-v">'+kf(v)+' <small>/ '+w+'</small></span></div>';
+    });
+    $k("kpGrp").innerHTML=gh;
+    var li=function(r){return '<div class="kp-li"><span><b>'+r[0]+'</b> '+kEsc(r[2])+'</span><span class="badge '+KB[r[10]]+'">'+kf(r[8])+'%</span></div>';};
+    var at=D.filter(function(r){return r[8]!==null&&r[8]<100;});
+    $k("kpAtt").innerHTML=at.length?at.map(li).join(""):'<div class="kp-note">Semua indikator terisi sudah mencapai target.</div>';
+    $k("kpTop").innerHTML=D.filter(function(r){return r[8]!==null;}).sort(function(a,b){return b[8]-a[8];}).slice(0,4).map(li).join("");
+    var q=$k("kpQ").value.toLowerCase(),g=$k("kpFg").value,s=$k("kpFs").value;
+    var rows=D.filter(function(r){return (!g||r[1]==g)&&(!s||r[10]===s)&&(!q||(r[0]+" "+r[2]).toLowerCase().indexOf(q)>-1);});
+    if(KS.sk>=0){var k=KS.sk,dr=KS.sd;rows.sort(function(a,b){var x=a[k],y=b[k];if(x===null)return 1;if(y===null)return -1;return (x>y?1:x<y?-1:0)*dr;});}
+    var cols=[["No",0],["Indikator",2],["Bobot",4],["Target",6],["Realisasi",7],["Pencapaian",8],["Nilai",9],["Status",10]];
+    $k("kpHead").innerHTML="<tr>"+cols.map(function(x){return '<th data-k="'+x[1]+'" class="'+(KS.sk===x[1]?"active":"")+'">'+x[0]+'<span class="arrow">'+(KS.sk===x[1]?(KS.sd>0?"↑":"↓"):"↕")+'</span></th>';}).join("")+"</tr>";
+    var cv={g:"var(--teal)",y:"var(--amber)",r:"var(--red)",n:"var(--grey)"};
+    $k("kpBody").innerHTML=rows.length?rows.map(function(r){
+      var w=r[8]===null?0:Math.min(r[8]/150*100,100);
+      return '<tr><td class="primary-text">'+r[0]+'</td><td>'+kEsc(r[2])+'<div class="kp-sm">'+KG[r[1]][0]+' · '+(r[5]==="d"?"makin rendah makin baik":"makin tinggi makin baik")+'</div></td><td class="kp-n">'+kf(r[4])+'</td><td class="kp-n">'+kf(r[6])+' <small>'+kEsc(r[3])+'</small></td><td class="kp-n">'+kf(r[7])+'</td><td><div class="kp-pb"><div class="kp-bar"><i style="width:'+w+'%;background:'+cv[r[10]]+'"></i><b></b></div><span>'+kf(r[8])+'%</span></div></td><td class="kp-n primary-text">'+kf(r[9])+'</td><td><span class="badge '+KB[r[10]]+'">'+KL[r[10]]+'</span></td></tr>';
+    }).join(""):'<tr><td colspan="8" class="kp-note" style="padding:16px;">Tidak ada indikator yang cocok dengan filter.</td></tr>';
+    $k("kpCount").textContent="Rincian Indikator · "+rows.length+" dari "+D.length+" · periode "+KM[KS.mo]+" 2026";
+    $k("kpChips").innerHTML=KS.chips.map(function(x){return '<div class="kp-chip"><span>'+kEsc(x[0])+'</span><span class="badge '+KB[x[2]]+'">'+(x[3]?kEsc(x[3]):kf(x[1])+'%')+'</span></div>';}).join("");
+    var bc=$k("cnt_kpi_UPT");if(bc)bc.textContent=D.length-c.n;
+    if($k("kpiPanel").style.display!=="none")$k("headerMeta").innerHTML='<div>Periode: <b>'+KM[KS.mo]+' 2026</b></div><div>Total Nilai: <b>'+kf(tot)+'</b></div>';
+  }
+
+  function kpiInit(){
+    KS.init=true;
+    $k("kpMo").innerHTML=KM.map(function(n,i){return '<option value="'+i+'">'+n+'</option>';}).join("");$k("kpMo").value=KS.mo;
+    $k("kpFg").innerHTML='<option value="">Semua kelompok</option>'+Object.keys(KG).map(function(k){return '<option value="'+k+'">'+k+'. '+KG[k][0]+'</option>';}).join("");
+    $k("kpMo").onchange=function(){
+      if(!KS.mc){this.value=8;KS.mo=8;kNote("Pilihan bulan membutuhkan koneksi ke Google Sheets. Klik Muat Ulang Data KPI.");return;}
+      KS.mo=+this.value;kpiCalc();kNote("Terhubung live ke Google Sheets · data bulan "+KM[KS.mo]+" 2026");
+    };
+    ["kpFg","kpFs","kpQ"].forEach(function(i){$k(i).oninput=kpiRender;});
+    $k("kpHead").onclick=function(e){var th=e.target.closest("th");if(!th)return;var k=+th.dataset.k;KS.sd=(KS.sk===k)?-KS.sd:1;KS.sk=k;kpiRender();};
+    $k("kpRef").onclick=function(){KS.loaded=false;kpiLoad();};
+    KS.rows=KD;KS.chips=KC;kpiRender();
+  }
+
+  function kpiShow(on){
+    var dc=$k("dashboardContent"),ls=$k("loadingState");
+    $k("kpiPanel").style.display=on?"":"none";
+    if(on){
+      dc.style.display="none";ls.style.display="none";
+      $k("tabMainTitle").textContent="Dashboard Kinerja KPI UPT Madiun";
+      if(!KS.init)kpiInit();
+      kpiRender();
+      if(!KS.loaded&&!KS.loading)kpiLoad();
+    } else {
+      ls.style.display="";
+      if(RAW_SHEET_DATA[currentTab])dc.style.display="";
+    }
+  }
+
   function renderDashboard(){
+    if(currentTab === "kpi_UPT"){ kpiShow(true); return; }
+    kpiShow(false);
     const dataObj = RAW_SHEET_DATA[currentTab];
     if(!dataObj) return;
 
