@@ -371,6 +371,22 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
 .kp-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;}
 .kp-chip{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--panel-border-soft);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text-mid);}
 @media (max-width:700px){.kp-r{grid-template-columns:110px 1fr 80px;}}
+
+/* ---------- TAB PROTEKSI PETIR ---------- */
+.pt-n{text-align:right !important;}
+.pt-sub{display:block;font-size:10.5px;color:var(--text-lo);margin-top:2px;}
+.pt-ms-pop{padding:8px;max-height:none;}
+.pt-ms-pop input[type=text]{width:100%;background:var(--bg-1);border:1px solid var(--panel-border-soft);color:var(--text-hi);padding:7px 9px;border-radius:6px;font-size:12px;outline:none;margin-bottom:6px;}
+.pt-ms-pop input[type=text]:focus{border-color:var(--blue);}
+.pt-ms-tools{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;font-family:var(--mono);font-size:10.5px;color:var(--text-lo);}
+.pt-ms-tools button{background:var(--bg-2);border:1px solid var(--panel-border-soft);color:var(--text-mid);border-radius:6px;padding:4px 8px;font-size:10.5px;cursor:pointer;font-family:var(--mono);}
+.pt-ms-tools button:hover{border-color:var(--blue);color:var(--blue);}
+.pt-ms-list{max-height:200px;overflow-y:auto;}
+.pt-bar{display:flex;align-items:center;gap:8px;min-width:130px;}
+.pt-bar .kp-bar{flex:1;--m:101%;}
+.pt-bar span{width:40px;text-align:right;font-family:var(--mono);color:var(--text-hi);}
+.pt-empty{padding:22px 12px;text-align:center;color:var(--text-lo);font-size:12px;}
+#ptrPanel tbody tr.pt-nc{cursor:default;}
 </style>
 </head>
 <body>
@@ -418,12 +434,13 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     <div class="tab-navigation" id="tabNav">
       <div class="nav-tab active" data-sheet="db_Anomali">⚡ Dashboard Anomali <span class="badge-count" id="cnt_db_Anomali">0</span></div>
       <div class="nav-tab" data-sheet="db_MTU_AHI">🩺 Dashboard AHI MTU <span class="badge-count" id="cnt_db_MTU_AHI">0</span></div>
-      <div class="nav-tab" data-sheet="db_Kerapatan_Petir">🌩️ Dashboard Kerapatan Petir <span class="badge-count" id="cnt_db_Kerapatan_Petir">0</span></div>
       <div class="nav-tab" data-sheet="db_ABO/CE">📋 Dashboard ABO CE <span class="badge-count" id="cnt_db_ABO/CE">0</span></div>
       <div class="nav-tab" data-sheet="db_Proker AO 53">💼 Dashboard Proker AO 53 <span class="badge-count" id="cnt_db_Proker AO 53">0</span></div>
       <div class="nav-tab" data-sheet="db_Paket AI 2026">🤖 Dashboard Paket AI 2026 <span class="badge-count" id="cnt_db_Paket AI 2026">0</span></div>
       <div class="nav-tab" data-sheet="db_Gangguan">⚡ Dashboard Gangguan <span class="badge-count" id="cnt_db_Gangguan">0</span></div>
       <div class="nav-tab" data-sheet="kpi_UPT">📊 Dashboard Kinerja KPI <span class="badge-count" id="cnt_kpi_UPT">0</span></div>
+      <div class="nav-tab" data-sheet="ptr_BANK">🛡️ Dashboard Proteksi Petir <span class="badge-count" id="cnt_ptr_BANK">0</span></div>
+      <div class="nav-tab" data-sheet="db_Kerapatan_Petir">🌩️ Dashboard Kerapatan Petir <span class="badge-count" id="cnt_db_Kerapatan_Petir">0</span></div>
     </div>
 
     <!-- LIVE STATUS -->
@@ -513,6 +530,56 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
         <div class="table-scroll"><table class="kp-t"><thead id="kpHead"></thead><tbody id="kpBody"></tbody></table></div>
       </div>
       <div class="chart-card" style="margin-bottom:20px;"><div class="chart-title"><span>Kepatuhan, Maturity Level &amp; Tata Kelola</span></div><div class="kp-chips" id="kpChips"></div></div>
+    </div>
+
+    <!-- PANEL TAB PROTEKSI PETIR -->
+    <div id="ptrPanel" style="display:none;">
+      <div class="filters-card">
+        <div class="filters-head"><div class="ft-label">Filter Proteksi Petir Tower SUTT</div><div style="display:flex;gap:8px;"><button class="refresh-btn" id="ptRef" style="margin-left:0;">⟳ Muat Ulang Data</button><button class="reset-btn" id="ptReset">Reset Filter</button></div></div>
+        <div class="filters-grid">
+          <div class="field"><label>ULTG</label><select id="ptU"></select></div>
+          <div class="field"><label>Tegangan</label><select id="ptT"></select></div>
+          <div class="field"><label>Penghantar</label><select id="ptP"></select></div>
+          <div class="field"><label>Status NORM AHI</label><select id="ptA"></select></div>
+          <div class="field"><label>Kesimpulan Asesmen</label><select id="ptK"></select></div>
+          <div class="field"><label>Tower</label>
+            <div class="custom-multiselect" id="ptTwWrap">
+              <button type="button" class="multiselect-btn" id="ptTwBtn"><span id="ptTwLbl">Semua tower</span><span>▾</span></button>
+              <div class="multiselect-dropdown pt-ms-pop" id="ptTwDd">
+                <input type="text" id="ptTwQ" placeholder="Cari tower / penghantar..." autocomplete="off">
+                <div class="pt-ms-tools"><span id="ptTwN"></span><span style="display:flex;gap:6px;"><button type="button" id="ptTwAll">Pilih hasil pencarian</button><button type="button" id="ptTwClr">Kosongkan</button></span></div>
+                <div class="pt-ms-list" id="ptTwList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="field"><label>Pencarian</label><input type="text" id="ptQ" placeholder="Cari tower / penghantar..."></div>
+        </div>
+        <div class="kp-note" id="ptNote"></div>
+      </div>
+      <div class="kpi-row" id="ptKpi"></div>
+      <div class="charts-grid">
+        <div class="chart-card"><div class="chart-title"><span>Status NORM AHI per ULTG</span><span>Good vs Critical</span></div><canvas id="ptC1" height="240"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Kesimpulan Asesmen Hasil Uji</span><span>jumlah tower</span></div><canvas id="ptC2" height="240"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Top 10 Penghantar — NORM AHI Critical</span><span>jumlah tower</span></div><canvas id="ptC3" height="280"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Proteksi Tambahan Terpasang</span><span>jumlah tower</span></div><canvas id="ptC4" height="180"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Sebaran Tahanan Pentanahan (Ω)</span><span>jumlah tower</span></div><canvas id="ptC5" height="240"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><span>Tower Diuji per Bulan</span><span>12 bulan terakhir</span></div><canvas id="ptC6" height="240"></canvas></div>
+      </div>
+      <div class="table-card" style="margin-bottom:20px;">
+        <div class="table-head"><div class="ft-label">Rekap per Penghantar</div><div class="kp-note">Klik baris untuk memfilter ke penghantar tersebut</div></div>
+        <div class="table-scroll"><table style="min-width:900px;"><thead id="ptPH"></thead><tbody id="ptPB"></tbody></table></div>
+        <div class="table-footer" id="ptPF"></div>
+      </div>
+      <div class="table-card" style="margin-bottom:20px;">
+        <div class="table-head"><div class="ft-label">Rekap per Tower</div><div class="kp-note">Klik baris untuk melihat detail</div></div>
+        <div class="table-scroll"><table style="min-width:1430px;"><thead id="ptTH"></thead><tbody id="ptTB"></tbody></table></div>
+        <div class="table-footer" id="ptTF"></div>
+      </div>
+      <div class="table-card" style="margin-bottom:20px;">
+        <div class="table-head"><div class="ft-label">Tower Perlu Perhatian</div><div class="kp-note">NORM AHI Critical atau asesmen P0–P2, diurutkan dari tahanan terbesar</div></div>
+        <div class="table-scroll"><table style="min-width:1000px;"><thead><tr><th class="pt-nc">Tower</th><th>Penghantar</th><th>ULTG</th><th class="pt-n">R (Ω)</th><th class="pt-n">Leg buruk</th><th>Asesmen</th><th>NORM AHI</th><th>Proteksi tambahan</th></tr></thead><tbody id="ptWB"></tbody></table></div>
+        <div class="table-footer" id="ptWF"></div>
+      </div>
     </div>
 
     <div class="footer">UPT Madiun Integrated System · Operational Decision Support System</div>
@@ -915,7 +982,305 @@ tbody td.primary-text{font-family:var(--mono);color:var(--text-hi);font-size:11.
     }
   }
 
+
+  /* ================= TAB PROTEKSI PETIR (sheet BANK, via gviz) ================= */
+  var PT_ID="1rhnuJvO6MYGa3jlrpoNSL_q03LzRyDZwYfMZ3z3lTcA",PT_SHEET="BANK";
+  var PT_MON={JAN:0,FEB:1,MAR:2,APR:3,MAY:4,MEI:4,JUN:5,JUL:6,AUG:7,AGU:7,AGS:7,SEP:8,OCT:9,OKT:9,NOV:10,DEC:11,DES:11};
+  var PT_M3=["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGU","SEP","OKT","NOV","DES"];
+  var PT_MN=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  var PT_PROT=["DGS","MDG","MRG","iGrass"];
+  var PT_KORD=["Baik","P2","P1","P0","Blm Lengkap","Kosong"];
+  var PT_PER=15;
+  /* Isi PT_KEY dengan Google API key (Sheets API aktif) agar data TETAP LENGKAP walau sheet BANK sedang difilter.
+     Kosong = pakai gviz, yang ikut menghormati filter aktif di sheet. */
+  var PT_KEY="";
+  var PS={init:false,loaded:false,loading:false,ALL:[],F:{u:"",t:"",p:"",a:"",k:"",q:"",tw:{}},PG:{p:1,t:1,w:1},SP:{k:"n",d:-1},ST:{k:"tw",d:1},seq:0,LT:[],LW:[],R:null};
+
+  function ptNm(s){return String(s==null?"":s).replace(/\s+/g," ").trim();}
+  function ptNum(v){if(v===undefined||v===null||v==="")return NaN;return typeof v==="number"?v:parseFloat(String(v).replace(",","."));}
+  function ptFx(v,d){if(v==null||v!==v)return "–";return v.toLocaleString("id-ID",{minimumFractionDigits:d||0,maximumFractionDigits:d||0});}
+  function ptPct(a,b){return b?a/b*100:0;}
+  function ptEsc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function ptColL(i){var s="";i++;while(i>0){var m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;}
+  function ptHn(s){return ptNm(s).toLowerCase();}
+  function ptVar(n,fb){var v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();return v||fb;}
+  function ptParseDate(s){
+    s=ptNm(s);var m=/^(\d{1,2})[-\/ ]([A-Za-z]{3})[A-Za-z]*[-\/ ](\d{2,4})$/.exec(s),y,mi;
+    if(m){mi=PT_MON[m[2].toUpperCase()];if(mi===undefined)return null;y=+m[3];if(y<100)y+=2000;return y*12+mi;}
+    m=/^(\d{4})-(\d{2})-\d{2}/.exec(s);if(m)return (+m[1])*12+(+m[2]-1);
+    m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s);if(m)return (+m[3])*12+(+m[2]-1);
+    return null;
+  }
+  function ptKcls(k){var s=String(k).toLowerCase();return s==="baik"?"teal":s==="p0"?"red":s==="p1"?"amber":s==="p2"?"blue":"grey";}
+  function ptAhic(a){return a==="Good"?"teal":a==="Critical"?"red":"grey";}
+  function ptBad(r){var k=r.kes.toLowerCase();return k==="p0"||k==="p1"||k==="p2";}
+  function ptBadge(c,t){return '<span class="badge badge-'+c+'">'+ptEsc(t)+'</span>';}
+
+  /* --- pembacaan gviz (JSONP) --- */
+  function ptFetch(range){
+    return new Promise(function(res,rej){
+      var cb="__ptr"+(++PS.seq)+"_"+(Date.now()%100000),sc=document.createElement("script"),tm=setTimeout(function(){fin();rej(new Error("timeout"));},30000);
+      function fin(){clearTimeout(tm);try{delete window[cb];}catch(e){window[cb]=undefined;}if(sc.parentNode)sc.parentNode.removeChild(sc);}
+      window[cb]=function(j){
+        fin();
+        try{
+          if(!j||j.status==="error"||!j.table){var er=j&&j.errors&&j.errors[0],e=new Error(er?(er.detailed_message||er.message||"gviz"):"format");e.code="gviz";throw e;}
+          res(j.table.rows.map(function(r){return (r.c||[]).map(function(c){
+            if(!c||c.v===undefined||c.v===null)return null;
+            var d=typeof c.v==="string"?/^Date\((\d+),(\d+),(\d+)/.exec(c.v):null;
+            if(d)return (+d[3])+"-"+PT_M3[+d[2]]+"-"+String(+d[1]).slice(-2);
+            return c.v;});}));
+        }catch(e){rej(e instanceof Error?e:new Error("format"));}
+      };
+      sc.onerror=function(){fin();rej(new Error("network"));};
+      sc.src="https://docs.google.com/spreadsheets/d/"+PT_ID+"/gviz/tq?tqx=out:json;responseHandler:"+cb+"&sheet="+encodeURIComponent(PT_SHEET)+"&range="+encodeURIComponent(range)+"&headers=0&tq="+encodeURIComponent("select *")+"&_="+Date.now();
+      document.body.appendChild(sc);
+    });
+  }
+  function ptApi(range){
+    var u="https://sheets.googleapis.com/v4/spreadsheets/"+PT_ID+"/values/"+encodeURIComponent(PT_SHEET+"!"+range)+"?key="+encodeURIComponent(PT_KEY)+"&valueRenderOption=FORMATTED_VALUE";
+    return fetch(u).then(function(r){return r.json().then(function(j){
+      if(!r.ok){var e=new Error("api "+r.status+(j&&j.error?" "+j.error.message:""));e.code="api";throw e;}
+      return (j.values||[]).map(function(row){return row.map(function(v){return v===""?null:v;});});
+    });},function(){throw new Error("network");});
+  }
+  function ptTry(list){
+    if(PT_KEY)return ptApi(list[0]);
+    var i=0;
+    return (function nxt(){
+      var r=list[i++];
+      return ptFetch(r).catch(function(e){
+        if(e&&(e.message==="network"||e.message==="timeout"))return Promise.reject(e);
+        if(i>=list.length)return Promise.reject(e);
+        return nxt();
+      });
+    })();
+  }
+
+  /* --- pemetaan kolom berdasarkan nama header (baris 2) --- */
+  var PT_LEAD=[["ul","ultg"],["gi","aset gardu induk"],["peng","penghantar"],["tw","tower"],["tgl","tanggal pengujian"]],
+  PT_TRAIL=[["st","status hasil uji"],["lb","jumlah leg buruk (indv)"],["kes","kesimpulan asesmen"],["ket","keterangan"],["ahi","norm ahi"],["R1","pengukuran tahanan pentanahan",1],["R2","max dari paralel leg a, b, c, d"],["R3","r total leg"],["cd","tanggal"],["cr","r total"],["ket2","keterangan (counterfois",1]],
+  PT_REQ=[["ul","ULTG"],["peng","PENGHANTAR"],["tw","TOWER"],["st","Status Hasil Uji"],["kes","KESIMPULAN ASESMEN"],["ahi","NORM AHI"]];
+  function ptMap(H){
+    var ix={},hs=H.map(ptHn);
+    PT_LEAD.concat(PT_TRAIL).forEach(function(d){ix[d[0]]=-1;for(var i=0;i<hs.length;i++){if(d[2]?hs[i].indexOf(d[1])===0:hs[i]===d[1]){ix[d[0]]=i;break;}}});
+    PT_PROT.forEach(function(q){ix[q]=hs.indexOf(q.toLowerCase());});
+    for(var r=0;r<PT_REQ.length;r++)if(ix[PT_REQ[r][0]]<0){var e=new Error('Kolom "'+PT_REQ[r][1]+'" tidak ditemukan di baris 2 sheet BANK. Periksa apakah judul kolomnya berubah.');e.code="header";throw e;}
+    var rg=function(keys){var v=keys.map(function(k){return ix[k];}).filter(function(x){return x>=0;});return[Math.min.apply(null,v),Math.max.apply(null,v)];};
+    var L=rg(PT_LEAD.map(function(d){return d[0];})),T=rg(PT_TRAIL.map(function(d){return d[0];}).concat(PT_PROT));
+    return{ix:ix,ls:L[0],le:L[1],ts:T[0],te:T[1]};
+  }
+  function ptBuild(A,B,M){
+    var out=[],ix=M.ix,ga=function(r,k){return ix[k]<0?undefined:r[ix[k]-M.ls];},gb=function(r,k){return ix[k]<0?undefined:r[ix[k]-M.ts];};
+    for(var i=0;i<A.length;i++){
+      var a=A[i]||[],b=B[i]||[],tw=ptNm(ga(a,"tw"));if(!tw)continue;
+      var peng=ptNm(ga(a,"peng")),mt=/(\d+)\s*kv/i.exec(peng),R=ptNum(gb(b,"R1"));
+      if(isNaN(R))R=ptNum(gb(b,"R2"));if(isNaN(R))R=ptNum(gb(b,"R3"));
+      var st=ptNm(gb(b,"st")),pr={};PT_PROT.forEach(function(p){pr[p]=ptNm(gb(b,p)).toUpperCase()==="TERPASANG";});
+      var tr=/#\s*\S+$/.exec(tw),tg=ga(a,"tgl");
+      out.push({ul:ptNm(ga(a,"ul")).replace(/^ULTG\s+/i,""),gi:ptNm(ga(a,"gi")),peng:peng.replace(/^TRS\s+/i,""),teg:mt?mt[1]+" kV":"Lainnya",tw:tw,no:tr?tr[0].replace(/\s/g,""):tw,
+        tgl:ptNm(tg),mo:ptParseDate(tg),st:st,ok:st.toUpperCase()==="OK",tst:!!st&&st.toLowerCase()!=="belum input",R:R,lb:ptNum(gb(b,"lb")),kes:ptNm(gb(b,"kes"))||"Kosong",ket:ptNm(gb(b,"ket")),ahi:ptNm(gb(b,"ahi"))||"KOSONG",pr:pr,
+        ct:!!(ptNm(gb(b,"cd"))||ptNm(gb(b,"cr"))),pa:PT_PROT.some(function(p){return pr[p];}),ket2:ptNm(gb(b,"ket2"))});
+    }
+    return out;
+  }
+
+  function ptNote(t,err){var n=$k("ptNote");n.textContent=t;n.style.color=err?"var(--red)":"";}
+  function ptLoad(){
+    if(PS.loading)return;PS.loading=true;ptNote("Memuat data proteksi petir dari Google Sheets…");
+    ptTry(["A2:CZ2","A2:BZ2","A2:AZ2","A2:Z2"]).then(function(h){
+      var M=ptMap(h[0]||[]),a=ptColL(M.ls)+"4:"+ptColL(M.le),b=ptColL(M.ts)+"4:"+ptColL(M.te);
+      var cand=function(x){var m=/^([A-Z]+4:[A-Z]+)$/.exec(x)[1];return [m,m+"8000",m+"4000"];};
+      return Promise.all([ptTry(cand(a)),ptTry(cand(b))]).then(function(r){return ptBuild(r[0],r[1],M);});
+    }).then(function(rows){
+      PS.ALL=rows;PS.loaded=true;
+      var c=$k("cnt_ptr_BANK");if(c)c.textContent=rows.length.toLocaleString("id-ID");
+      if(!rows.length){ptNote("Tidak ada baris tower yang terbaca. Periksa apakah tabel di sheet BANK masih dimulai dari baris 4.",true);}
+      else ptNote("Terhubung live ke Google Sheets · sheet BANK · "+ptFx(rows.length)+" tower"+(PT_KEY?" · semua baris (abaikan filter sheet)":" · catatan: jika sheet BANK sedang difilter, data ikut berkurang (isi PT_KEY untuk mengatasinya)"));
+      ptFilters();ptRender();
+    }).catch(function(e){
+      var m=e&&e.message,t;
+      if(e&&e.code==="header")t=e.message;
+      else if(e&&e.code==="api")t="Gagal membaca lewat Google Sheets API ("+m+"). Periksa API key (Sheets API aktif, tidak dibatasi dari domain ini) dan pastikan sheet dibagikan sebagai Viewer.";
+      else if(m==="network"||m==="timeout"||(e&&e.code==="gviz"))t="Gagal membaca sheet BANK"+(m?" ("+m+")":"")+". Pastikan spreadsheet dibagikan sebagai 'Siapa saja yang memiliki link' (Viewer), lalu klik Muat Ulang Data.";
+      else t="Gagal memuat data proteksi petir"+(m?" ("+m+")":"")+". Klik Muat Ulang Data untuk mencoba lagi.";
+      PS.loaded=false;ptNote(t,true);
+    }).then(function(){PS.loading=false;});
+  }
+
+  /* --- filter --- */
+  function ptUniq(rows,k){var m={};rows.forEach(function(r){m[r[k]]=1;});return Object.keys(m).sort();}
+  function ptOpt(id,first,vals,cur){
+    $k(id).innerHTML='<option value="">'+first+'</option>'+vals.map(function(v){return '<option value="'+ptEsc(v)+'">'+ptEsc(v)+'</option>';}).join("");
+    $k(id).value=vals.indexOf(cur)>-1?cur:"";
+  }
+  function ptFilters(){
+    var F=PS.F,A=PS.ALL;
+    ptOpt("ptU","Semua ULTG",ptUniq(A,"ul"),F.u);
+    ptOpt("ptT","Semua tegangan",ptUniq(A,"teg").sort(function(a,b){return parseInt(b)-parseInt(a);}),F.t);
+    ptOpt("ptA","Semua status",ptUniq(A,"ahi"),F.a);
+    var ks=ptUniq(A,"kes").sort(function(a,b){var x=PT_KORD.indexOf(a),y=PT_KORD.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
+    ptOpt("ptK","Semua kesimpulan",ks,F.k);ptPengOpts();ptTwLabel();
+  }
+  function ptPengOpts(){
+    var F=PS.F,rows=PS.ALL.filter(function(r){return (!F.u||r.ul===F.u)&&(!F.t||r.teg===F.t);});
+    ptOpt("ptP","Semua penghantar",ptUniq(rows,"peng"),F.p);F.p=$k("ptP").value;
+  }
+  function ptFilt(){
+    var F=PS.F,q=F.q.toLowerCase(),ht=Object.keys(F.tw).length>0;
+    return PS.ALL.filter(function(r){return (!F.u||r.ul===F.u)&&(!F.t||r.teg===F.t)&&(!F.p||r.peng===F.p)&&(!ht||F.tw[r.tw])&&(!F.a||r.ahi===F.a)&&(!F.k||r.kes===F.k)&&(!q||(r.tw+" "+r.peng).toLowerCase().indexOf(q)>-1);});
+  }
+  function ptTwScope(){var F=PS.F;return PS.ALL.filter(function(r){return (!F.u||r.ul===F.u)&&(!F.t||r.teg===F.t)&&(!F.p||r.peng===F.p);});}
+  function ptTwMatch(){var q=$k("ptTwQ").value.toLowerCase();return ptTwScope().filter(function(r){return !q||(r.tw+" "+r.peng).toLowerCase().indexOf(q)>-1;});}
+  function ptTwLabel(){var n=Object.keys(PS.F.tw).length;$k("ptTwLbl").textContent=n?n+" tower dipilih":"Semua tower";}
+  function ptTwList(){
+    var m=ptTwMatch(),L=m.slice(0,150);
+    $k("ptTwN").textContent=ptFx(m.length)+" tower"+(m.length>L.length?" · tampil 150 pertama":"");
+    $k("ptTwList").innerHTML=L.map(function(r){return '<label class="multiselect-option"><input type="checkbox" data-t="'+ptEsc(r.tw)+'"'+(PS.F.tw[r.tw]?" checked":"")+'><span>'+ptEsc(r.no)+'<small class="pt-sub">'+ptEsc(r.peng)+'</small></span></label>';}).join("")||'<div class="pt-empty">Tidak ada tower yang cocok.</div>';
+  }
+  function ptTwClose(){$k("ptTwDd").classList.remove("show");$k("ptTwBtn").classList.remove("open");}
+  function ptChange(){PS.PG={p:1,t:1,w:1};ptRender();}
+
+  function ptInit(){
+    PS.init=true;
+    var F=function(){return PS.F;};
+    var chg=function(k,id){$k(id).onchange=function(){var f=F();f[k]=this.value;
+      if(k==="u"||k==="t"||k==="p"){f.tw={};ptTwLabel();ptTwList();}
+      if(k==="u"||k==="t"){f.p="";ptPengOpts();}
+      ptChange();};};
+    chg("u","ptU");chg("t","ptT");chg("p","ptP");chg("a","ptA");chg("k","ptK");
+    $k("ptQ").oninput=function(){PS.F.q=this.value;ptChange();};
+    $k("ptTwBtn").onclick=function(){
+      var dd=$k("ptTwDd");
+      if(dd.classList.contains("show")){ptTwClose();return;}
+      if(!PS.ALL.length)return;
+      dd.classList.add("show");this.classList.add("open");ptTwList();$k("ptTwQ").focus();
+    };
+    $k("ptTwQ").oninput=ptTwList;
+    $k("ptTwAll").onclick=function(){ptTwMatch().forEach(function(r){PS.F.tw[r.tw]=1;});ptTwLabel();ptTwList();ptChange();};
+    $k("ptTwClr").onclick=function(){PS.F.tw={};ptTwLabel();ptTwList();ptChange();};
+    $k("ptTwList").onchange=function(e){var t=e.target.getAttribute("data-t");if(t===null)return;if(e.target.checked)PS.F.tw[t]=1;else delete PS.F.tw[t];ptTwLabel();ptChange();};
+    document.addEventListener("click",function(e){if(!e.target.closest||!e.target.closest("#ptTwWrap"))ptTwClose();});
+    $k("ptReset").onclick=function(){PS.F={u:"",t:"",p:"",a:"",k:"",q:"",tw:{}};$k("ptQ").value="";$k("ptTwQ").value="";if(PS.ALL.length){ptFilters();ptChange();}};
+    $k("ptRef").onclick=function(){PS.loaded=false;ptLoad();};
+    $k("ptrPanel").addEventListener("click",function(e){
+      var th=e.target.closest("#ptPH th[data-k]");
+      if(th){var k=th.getAttribute("data-k");PS.SP.d=PS.SP.k===k?-PS.SP.d:(k==="peng"||k==="ul"?1:-1);PS.SP.k=k;PS.PG.p=1;ptRender();return;}
+      th=e.target.closest("#ptTH th[data-k]");
+      if(th){var tk=th.getAttribute("data-k");PS.ST.d=PS.ST.k===tk?-PS.ST.d:(["tw","peng","ul","st","kes","ahi","ket2"].indexOf(tk)>-1?1:-1);PS.ST.k=tk;PS.PG.t=1;ptRender();return;}
+      var pb=e.target.closest(".pager button");
+      if(pb){if(!pb.disabled){PS.PG[pb.getAttribute("data-g")]+=+pb.getAttribute("data-d");ptRender();}return;}
+      var tr=e.target.closest("tr[data-p]");
+      if(tr){var f=PS.F;f.tw={};ptTwLabel();f.u=tr.getAttribute("data-u");$k("ptU").value=f.u;ptPengOpts();f.p=tr.getAttribute("data-p");$k("ptP").value=f.p;ptTwList();ptChange();window.scrollTo({top:0,behavior:"smooth"});return;}
+      tr=e.target.closest("tr[data-i]");
+      if(tr){var r=(tr.getAttribute("data-s")==="w"?PS.LW:PS.LT)[+tr.getAttribute("data-i")];if(r)ptDetail(r);}
+    });
+    var rz;window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(function(){if($k("ptrPanel").style.display!=="none"&&PS.loaded)ptCharts();},150);});
+  }
+  function ptDetail(r){
+    var p=PT_PROT.filter(function(x){return r.pr[x];}).join(", ")||"Tidak ada";
+    openDrawer({"Tower":r.tw,"Penghantar":r.peng,"ULTG":r.ul,"Aset Gardu Induk":r.gi||"–","Tegangan":r.teg,"Tanggal Pengujian":r.tgl||"–","Status Hasil Uji":r.st||"Kosong","Tahanan R (Ω)":ptFx(r.R,2),"Jumlah Leg Buruk":ptFx(r.lb),"Kesimpulan Asesmen":r.kes,"NORM AHI":r.ahi,"Proteksi Tambahan":p,"Uji CT Ring":r.ct?"Sudah":"Belum","Keterangan":r.ket||"–","Perkuatan / Counterpoise":r.ket2||"–"});
+  }
+
+  /* --- render --- */
+  function ptKpiCard(l,v,sub,col){return '<div class="kpi" style="--kpi-color:'+col+'"><div class="kpi-header-flex"><div class="kpi-label">'+l+'</div></div><div class="kpi-value">'+v+'</div><div class="kpi-sub">'+sub+'</div></div>';}
+  function ptCnt(rows,fn){var m={};rows.forEach(function(r){var k=fn(r);m[k]=(m[k]||0)+1;});return m;}
+  function ptPager(g,total,unit){
+    var pages=Math.max(1,Math.ceil(total/PT_PER));if(PS.PG[g]>pages)PS.PG[g]=pages;
+    var pg=PS.PG[g],a=total?(pg-1)*PT_PER+1:0,b=Math.min(pg*PT_PER,total);
+    return '<div>'+(total?'Menampilkan '+ptFx(a)+'–'+ptFx(b)+' dari '+ptFx(total)+' '+unit:'')+'</div><div class="pager"><button type="button" data-g="'+g+'" data-d="-1"'+(pg<=1?" disabled":"")+'>‹</button><span>'+pg+' / '+pages+'</span><button type="button" data-g="'+g+'" data-d="1"'+(pg>=pages?" disabled":"")+'>›</button></div>';
+  }
+  function ptPage(L,g){var pages=Math.max(1,Math.ceil(L.length/PT_PER));if(PS.PG[g]>pages)PS.PG[g]=pages;return L.slice((PS.PG[g]-1)*PT_PER,PS.PG[g]*PT_PER);}
+  function ptTh(cols,st,numKeys){
+    return "<tr>"+cols.map(function(c){var on=st.k===c[1];return '<th data-k="'+c[1]+'" class="'+(numKeys.indexOf(c[1])>-1?"pt-n ":"")+(on?"active":"")+'">'+c[0]+'<span class="arrow">'+(on?(st.d>0?"↑":"↓"):"↕")+'</span></th>';}).join("")+"</tr>";
+  }
+
+  function ptRender(){
+    if(!PS.loaded){return;}
+    var rows=ptFilt(),n=rows.length;PS.R=rows;
+    $k("headerMeta").innerHTML='<div>Menampilkan: <b>'+ptFx(n)+'</b> dari <b>'+ptFx(PS.ALL.length)+'</b> tower</div>';
+    var ok=rows.filter(function(r){return r.ok;}).length,tst=rows.filter(function(r){return r.tst;}).length,good=rows.filter(function(r){return r.ahi==="Good";}).length,crit=rows.filter(function(r){return r.ahi==="Critical";}).length,
+      att=rows.filter(ptBad).length,pa=rows.filter(function(r){return r.pa;}).length;
+    $k("ptKpi").innerHTML=
+      ptKpiCard("Total Tower",ptFx(n),ptFx(ptUniq(rows,"peng").length)+" penghantar","var(--blue)")+
+      ptKpiCard("Tower Teruji",ptFx(ptPct(tst,n),1)+"%",ptFx(tst)+" tower ("+ptFx(ok)+" OK, "+ptFx(tst-ok)+" input ulang)","var(--teal)")+
+      ptKpiCard("NORM AHI Good",ptFx(ptPct(good,n),1)+"%",ptFx(good)+" tower","var(--teal)")+
+      ptKpiCard("NORM AHI Critical",ptFx(crit),ptFx(ptPct(crit,n),1)+"% dari tower","var(--red)")+
+      ptKpiCard("Asesmen P0–P2",ptFx(att),"hasil uji leg buruk","var(--amber)")+
+      ptKpiCard("Proteksi Tambahan",ptFx(ptPct(pa,n),1)+"%",ptFx(pa)+" tower (DGS, MDG, MRG, iGrass)","var(--purple)");
+    ptCharts();
+    ptTables(rows);
+  }
+
+  function ptCharts(){
+    var rows=PS.R||[];
+    var PH={ptC1:240,ptC2:240,ptC3:280,ptC4:180,ptC5:240,ptC6:240};
+    Object.keys(PH).forEach(function(id){var c=$k(id);if(c){c.setAttribute("height",PH[id]);c.style.height=PH[id]+"px";}});
+    var teal=ptVar("--teal","#2dd4bf"),red=ptVar("--red","#f0546b"),blue=ptVar("--blue","#4c8dff"),amber=ptVar("--amber","#f5a524"),purple=ptVar("--purple","#a78bfa");
+    // 1. NORM AHI per ULTG
+    drawGroupedBar("ptC1",ptUniq(rows,"ul").map(function(u){var rr=rows.filter(function(r){return r.ul===u;});
+      return {label:u,values:[{name:"Good",value:rr.filter(function(r){return r.ahi==="Good";}).length,color:teal},{name:"Critical",value:rr.filter(function(r){return r.ahi==="Critical";}).length,color:red}]};}),{unit:"Tower"});
+    // 2. Kesimpulan asesmen
+    var kc=ptCnt(rows,function(r){return r.kes;}),ks=Object.keys(kc).sort(function(a,b){var x=PT_KORD.indexOf(a),y=PT_KORD.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
+    drawBar("ptC2",ks.map(function(k){return {label:k,value:kc[k]};}),{horizontal:false,color:blue,unit:"Tower"});
+    // 3. Top 10 penghantar Critical
+    var pc=ptCnt(rows.filter(function(r){return r.ahi==="Critical";}),function(r){return r.peng;});
+    drawBar("ptC3",Object.keys(pc).map(function(k){return {label:k,value:pc[k]};}).sort(function(a,b){return b.value-a.value;}).slice(0,10),{horizontal:true,color:red,unit:"Tower Critical",padLeft:190});
+    // 4. Proteksi tambahan
+    drawBar("ptC4",PT_PROT.map(function(p){return {label:p,value:rows.filter(function(r){return r.pr[p];}).length};}),{horizontal:true,color:purple,unit:"Tower",padLeft:80});
+    // 5. Sebaran R
+    var bins=[["≤0,5",0,.5],["0,5–1",.5,1],["1–2",1,2],["2–5",2,5],["5–10",5,10],[">10",10,1e9]];
+    drawBar("ptC5",bins.map(function(b){return {label:b[0],value:rows.filter(function(r){return r.R===r.R&&((r.R>b[1]&&r.R<=b[2])||(b[1]===0&&r.R===0));}).length};}),{horizontal:false,color:amber,unit:"Tower"});
+    // 6. Tower diuji per bulan
+    var mc=ptCnt(rows.filter(function(r){return r.mo!==null;}),function(r){return r.mo;}),mk=Object.keys(mc).map(Number).sort(function(a,b){return a-b;}).slice(-12);
+    drawBar("ptC6",mk.map(function(k){return {label:PT_MN[k%12]+" "+String(Math.floor(k/12)).slice(2),value:mc[k]};}),{horizontal:false,color:teal,unit:"Tower"});
+  }
+
+  function ptTables(rows){
+    // --- rekap per penghantar
+    var m={};
+    rows.forEach(function(r){var o=m[r.peng]||(m[r.peng]={peng:r.peng,ul:r.ul,n:0,ok:0,tst:0,crit:0,att:0,pa:0,R:NaN});o.n++;if(r.ok)o.ok++;if(r.tst)o.tst++;if(r.ahi==="Critical")o.crit++;if(ptBad(r))o.att++;if(r.pa)o.pa++;if(r.R===r.R&&!(o.R>=r.R))o.R=r.R;});
+    var P=Object.keys(m).map(function(k){var o=m[k];o.okp=ptPct(o.tst,o.n);o.pap=ptPct(o.pa,o.n);return o;}),sp=PS.SP;
+    P.sort(function(a,b){var x=a[sp.k],y=b[sp.k];if(typeof x==="string")return x.localeCompare(y)*sp.d;if(x!==x)return 1;if(y!==y)return -1;return (x-y)*sp.d;});
+    $k("ptPH").innerHTML=ptTh([["Penghantar","peng"],["ULTG","ul"],["Tower","n"],["Teruji","okp"],["Critical","crit"],["P0–P2","att"],["Proteksi Tambahan","pap"],["R maks (Ω)","R"]],sp,["n","okp","crit","att","pap","R"]);
+    $k("ptPB").innerHTML=ptPage(P,"p").map(function(o){
+      return '<tr data-p="'+ptEsc(o.peng)+'" data-u="'+ptEsc(o.ul)+'"><td class="primary-text">'+ptEsc(o.peng)+'</td><td>'+ptEsc(o.ul)+'</td><td class="pt-n">'+ptFx(o.n)+'</td>'+
+        '<td><div class="pt-bar"><div class="kp-bar"><i style="width:'+o.okp+'%;background:var(--teal)"></i></div><span>'+ptFx(o.okp,0)+'%</span></div></td>'+
+        '<td class="pt-n">'+(o.crit?ptBadge("red",ptFx(o.crit)):"0")+'</td><td class="pt-n">'+(o.att?ptBadge("amber",ptFx(o.att)):"0")+'</td><td class="pt-n">'+ptFx(o.pap,0)+'%</td><td class="pt-n">'+ptFx(o.R,2)+'</td></tr>';
+    }).join("")||'<tr class="pt-nc"><td colspan="8" class="pt-empty">Tidak ada data pada filter ini.</td></tr>';
+    $k("ptPF").innerHTML=ptPager("p",P.length,"penghantar");
+    // --- rekap per tower
+    var st=PS.ST,tval=function(r,k){if(k==="ct")return r.ct?1:0;if(PT_PROT.indexOf(k)>-1)return r.pr[k]?1:0;if(k==="mo")return r.mo===null?NaN:r.mo;return r[k];};
+    var T=rows.slice().sort(function(a,b){var x=tval(a,st.k),y=tval(b,st.k);if(typeof x==="string"||typeof y==="string")return String(x).localeCompare(String(y),"id",{numeric:true})*st.d;if(x!==x)return 1;if(y!==y)return -1;return (x-y)*st.d;});
+    PS.LT=T;
+    $k("ptTH").innerHTML=ptTh([["Tower","tw"],["Penghantar","peng"],["ULTG","ul"],["Tgl Uji","mo"],["Status Uji","st"],["R (Ω)","R"],["Leg Buruk","lb"],["Asesmen","kes"],["NORM AHI","ahi"],["DGS","DGS"],["MDG","MDG"],["MRG","MRG"],["iGrass","iGrass"],["CT Ring","ct"],["Perkuatan","ket2"]],st,["R","lb"]);
+    var yn=function(v){return v?ptBadge("teal","✓"):'<span style="color:var(--text-lo)">–</span>';},off=(PS.PG.t-1)*PT_PER;
+    $k("ptTB").innerHTML=ptPage(T,"t").map(function(r,i){
+      return '<tr data-s="t" data-i="'+(off+i)+'"><td class="primary-text">'+ptEsc(r.no)+'<span class="pt-sub">'+ptEsc(r.gi)+'</span></td><td>'+ptEsc(r.peng)+'</td><td>'+ptEsc(r.ul)+'</td><td>'+ptEsc(r.tgl||"–")+'</td><td>'+ptBadge(r.ok?"teal":r.tst?"amber":"grey",r.st||"Kosong")+'</td><td class="pt-n">'+ptFx(r.R,2)+'</td><td class="pt-n">'+ptFx(r.lb)+'</td><td>'+ptBadge(ptKcls(r.kes),r.kes)+'</td><td>'+ptBadge(ptAhic(r.ahi),r.ahi)+'</td><td>'+yn(r.pr.DGS)+'</td><td>'+yn(r.pr.MDG)+'</td><td>'+yn(r.pr.MRG)+'</td><td>'+yn(r.pr.iGrass)+'</td><td>'+yn(r.ct)+'</td><td>'+ptEsc(r.ket2||"–")+'</td></tr>';
+    }).join("")||'<tr class="pt-nc"><td colspan="15" class="pt-empty">Tidak ada data pada filter ini.</td></tr>';
+    $k("ptTF").innerHTML=ptPager("t",T.length,"tower");
+    // --- perlu perhatian
+    var W=rows.filter(function(r){return r.ahi==="Critical"||ptBad(r);}).sort(function(a,b){var x=a.R===a.R?a.R:-1,y=b.R===b.R?b.R:-1;return y-x;});
+    PS.LW=W;var offw=(PS.PG.w-1)*PT_PER;
+    $k("ptWB").innerHTML=ptPage(W,"w").map(function(r,i){
+      var p=PT_PROT.filter(function(x){return r.pr[x];}).join(", ")||"Tidak ada";
+      return '<tr data-s="w" data-i="'+(offw+i)+'"><td class="primary-text">'+ptEsc(r.no)+'<span class="pt-sub">'+ptEsc(r.gi)+'</span></td><td>'+ptEsc(r.peng)+'</td><td>'+ptEsc(r.ul)+'</td><td class="pt-n">'+ptFx(r.R,2)+'</td><td class="pt-n">'+ptFx(r.lb)+'</td><td>'+ptBadge(ptKcls(r.kes),r.kes)+(r.ket?'<span class="pt-sub">'+ptEsc(r.ket)+'</span>':"")+'</td><td>'+ptBadge(ptAhic(r.ahi),r.ahi)+'</td><td>'+ptEsc(p)+'</td></tr>';
+    }).join("")||'<tr class="pt-nc"><td colspan="8" class="pt-empty">Tidak ada tower yang perlu perhatian pada filter ini.</td></tr>';
+    $k("ptWF").innerHTML=ptPager("w",W.length,"tower");
+  }
+
+  function ptrShow(on){
+    $k("ptrPanel").style.display=on?"":"none";
+    if(!on)return;
+    $k("dashboardContent").style.display="none";$k("loadingState").style.display="none";
+    $k("tabMainTitle").textContent="Dashboard Proteksi Petir Tower SUTT";
+    if(!PS.init)ptInit();
+    if(PS.loaded)ptRender();else if(!PS.loading)ptLoad();
+  }
+
   function renderDashboard(){
+    if(currentTab === "ptr_BANK"){ kpiShow(false); ptrShow(true); return; }
+    ptrShow(false);
     if(currentTab === "kpi_UPT"){ kpiShow(true); return; }
     kpiShow(false);
     const dataObj = RAW_SHEET_DATA[currentTab];
